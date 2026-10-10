@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="اتصال سريع">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1222">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>اتصال سريع</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Aref+Ruqaa:wght@400;700&family=Lalezar&family=Changa:wght@400;600&display=swap">
+<style>
+/* Layout: 6 صفحات أفقية بخلفيات ملونة + شريط تبويب سفلي + شاشة إعدادات مستقلة + ورقة سفلية للتواصل */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --ink:#14203a; --muted:#66718a; --line:#d9dfea; --accent:#1f6feb; --scrim:rgba(10,18,36,.5);
+  --display:"Readex Pro","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --body:"IBM Plex Sans Arabic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1526;--surface:#17213a;--ink:#e8edf7;--muted:#93a0bb;--line:#26324f;--accent:#5b9bff;--scrim:rgba(0,0,0,.6);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1526;--surface:#17213a;--ink:#e8edf7;--muted:#93a0bb;--line:#26324f;--accent:#5b9bff;--scrim:rgba(0,0,0,.6);color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+.page .pin{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+html,body{height:100%}
+body{background:#0d1526;color:var(--ink);font-family:var(--body);direction:rtl;-webkit-tap-highlight-color:transparent;overflow:hidden}
+button{font-family:var(--body)}
+.app{height:100%;display:flex;flex-direction:column}
+.pager{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;min-height:0}
+.pager::-webkit-scrollbar{display:none}
+.page{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;overflow-y:auto;color:#fff;background-size:cover;background-position:center;position:relative}
+.page::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,0) 30%,rgba(0,0,0,.2));pointer-events:none}
+.pin{position:relative;max-width:560px;margin:0 auto;padding:0 16px;padding-block:14px 30px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px}
+.top h2{font-family:var(--display);font-size:1.75rem;margin:0;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.top small{display:block;font-size:.8rem;opacity:.85;margin-top:2px;font-family:var(--body);font-weight:500}
+.tools{display:flex;gap:8px}
+.gbtn{border:0;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font:500 .88rem var(--body);height:38px;min-width:38px;padding:0 14px;border-radius:999px;cursor:pointer;display:grid;place-items:center}
+.gbtn.on{background:#fff;color:#14203a}
+.gbtn svg{width:20px;height:20px;fill:currentColor}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px}
+.tile{all:unset;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;position:relative;min-width:0}
+.av{width:100%;max-width:76px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 1.55rem var(--display);background-size:cover;background-position:center;box-shadow:0 5px 14px rgba(0,0,0,.25);transition:transform .15s;border:2px solid rgba(255,255,255,.35)}
+.tile:active .av{transform:scale(.92)}
+.nm{font-size:.8rem;font-weight:600;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.add .av{background:rgba(255,255,255,.12);border:2px dashed rgba(255,255,255,.55);box-shadow:none;font-size:1.8rem;font-weight:500}
+.editing .tile:not(.add) .av{animation:wob .3s infinite alternate}
+.editing .tile:not(.add)::after{content:"✎";position:absolute;top:-4px;left:4px;background:#fff;color:#14203a;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.75rem}
+@keyframes wob{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@media (prefers-reduced-motion:reduce){.editing .tile .av{animation:none}}
+.empty{text-align:center;opacity:.85;font-size:.85rem;margin-top:26px;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+/* tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#0b1222}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:0;background:transparent;color:#9aa6c0;font:500 .82rem var(--body);padding:7px 12px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.tab i{width:8px;height:8px;border-radius:50%;display:block}
+.tab.cur{background:rgba(255,255,255,.1);color:#fff}
+.gbtn:focus-visible,.tile:focus-visible,.opt:focus-visible,.tab:focus-visible,.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+/* sheets */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:var(--surface);color:var(--ink);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out;max-height:92%;overflow-y:auto}
+@keyframes up{from{transform:translateY(40px);opacity:.6}}
+.who{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.who .av{width:56px;max-width:56px;font-size:1.3rem;border:0}
+.who b{font-family:var(--display);font-size:1.2rem;display:block}
+.who span{color:var(--muted);font-size:.85rem;direction:ltr;display:inline-block}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-size:.78rem;font-weight:500;cursor:pointer;border:0;background:none;padding:0}
+.ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;color:#fff}
+.ic svg{width:26px;height:26px;fill:currentColor}
+.opt.off{opacity:.3}
+.row{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.row .btn{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 .9rem var(--body);padding:9px 14px;border-radius:999px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{color:#d23b3b}
+label.l{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+input.f,select.f,textarea.f{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:1rem var(--body)}
+input.ltr,textarea.ltr{direction:ltr;text-align:left}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.colors{display:flex;gap:8px;flex-wrap:wrap}
+.colors button{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.colors button.sel{border-color:var(--ink)}
+/* settings screen */
+.settings{position:fixed;inset:0;background:var(--bg);z-index:8;overflow-y:auto;animation:slide .25s ease-out;padding-top:env(safe-area-inset-top,0px)}
+@keyframes slide{from{transform:translateX(-30px);opacity:0}}
+.settings .pin{color:var(--ink)}
+.settings h2{font-family:var(--display);font-size:1.6rem;margin:0}
+.sec{font-size:.78rem;color:var(--muted);font-weight:600;letter-spacing:.02em;margin:22px 4px 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.prow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-inline:0;border-top:0;color:var(--ink);font:500 .95rem var(--body);text-align:right}
+.prow:last-child{border-bottom:0}
+.thumb{width:44px;height:44px;border-radius:12px;background-size:cover;background-position:center;flex:0 0 auto;border:1px solid rgba(0,0,0,.08)}
+.prow .grow{flex:1;min-width:0}
+.prow small{display:block;color:var(--muted);font-size:.78rem;font-weight:400}
+.chev{color:var(--muted);font-size:1.2rem}
+.bgopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bgopt{aspect-ratio:3/4;border-radius:12px;border:3px solid transparent;cursor:pointer;background-size:cover;background-position:center;color:#fff;font:500 .75rem var(--body);display:flex;align-items:flex-end;justify-content:center;padding:6px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.bgopt.sel{border-color:var(--ink)}
+.note{color:var(--muted);font-size:.8rem;line-height:1.6;margin:8px 4px 0}
+.sic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:0 0 auto;font:700 1rem var(--display)}
+.sic svg{width:20px;height:20px;fill:currentColor}
+.fopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fopt{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:12px 10px;cursor:pointer;text-align:center}
+.fopt b{display:block;font-size:1.25rem;font-weight:700;line-height:1.5}
+.fopt small{color:var(--muted);font-size:.72rem;font-family:var(--body)}
+.fopt.sel{border-color:var(--accent)}
+.szs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.szs button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 4px;cursor:pointer;font-weight:700}
+.szs button.sel{border-color:var(--accent)}
+.prev{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;color:#fff;margin-bottom:14px}
+.prev .av{width:58px;max-width:58px;border:0}
+.toast{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#14203a;color:#fff;padding:9px 16px;border-radius:999px;font-size:.85rem;z-index:30;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="pager" id="pager"></div>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<div id="layer"></div>
+
+<script>
+const AV=["#c0574b","#4a7489","#c98a3a","#8a4fb8","#2f8f6b","#d26a9a","#3b5bdb","#5c6b7a"];
+const PC=["#2b4c9b","#b5473a","#2f7d5b","#7a45a8","#c27a1f","#1f7f8f","#b83f73","#3d4a63","#8f6b3a","#0f5f4a"];
+const SVC={
+ call:{n:"اتصال",c:"#2fa84f",f:"phone",u:v=>"tel:"+v,i:'<path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>'},
+ wa:{n:"واتساب",c:"#25d366",f:"phone",u:v=>"https://wa.me/"+v.replace(/\D/g,""),i:'<path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.2.3 0 .5.1.3.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.2.1.7-.1 1.3z"/>'},
+ sms:{n:"رسالة",c:"#34a0f0",f:"phone",u:v=>"sms:"+v,i:'<path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7zm6 5H7v-2h6zm4-6H7V6h10z"/>'},
+ fb:{n:"فيسبوك",c:"#1877f2",f:"fb",u:v=>"https://m.me/"+v,i:'<path d="M14 13.5h2.5l1-4H14v-2c0-1 0-2 2-2h1.5V2.1A21 21 0 0 0 14.6 2C12 2 10 3.7 10 6.7v2.8H7v4h3V22h4z"/>'},
+ x:{n:"تويتر X",c:"#111111",f:"x",u:v=>"https://x.com/"+v,i:'<path d="M17.8 3h3.1l-6.7 7.6L22 21h-6.2l-4.8-6.3L5.5 21H2.4l7.2-8.2L2 3h6.3l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.5z"/>'},
+ ig:{n:"انستقرام",c:"#d6297a",f:"ig",u:v=>"https://ig.me/m/"+v,i:'<path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21.9 8c-.1-1.6-.4-3-1.6-4.2S17.6 2.2 16 2.1C14.4 2 9.6 2 8 2.1 6.4 2.2 5 2.5 3.8 3.7S2.2 6.4 2.1 8C2 9.6 2 14.4 2.1 16c.1 1.6.4 3 1.6 4.2s2.6 1.5 4.2 1.6c1.6.1 6.4.1 8 0 1.6-.1 3-.4 4.2-1.6s1.5-2.6 1.6-4.2c.1-1.6.1-6.4 0-8z"/>'},
+ tt:{n:"تيك توك",c:"#000000",f:"tt",u:v=>"https://www.tiktok.com/@"+v,i:'<path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.8a5.7 5.7 0 1 0 4.9 5.6V9.1a7.3 7.3 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-3.2-1.6z"/>'},
+ sc:{n:"سناب",c:"#f5c400",f:"sc",u:v=>"https://www.snapchat.com/add/"+v,i:'<path d="M12 2c3 0 5.4 2.3 5.4 5.4v2.5c.5.2 1.3.1 1.8-.2.5-.2 1 .4.6.9-.5.6-1.8.9-2.2 1.2.2 1.2 1.8 3.5 4 4.1.3.1.4.5.1.7-.7.6-2.1.6-2.4 1-.2.3-.1 1.1-.5 1.3-.6.2-1.7-.3-3.1.2-1.2.4-2 1.9-3.7 1.9s-2.5-1.5-3.7-1.9c-1.4-.5-2.5 0-3.1-.2-.4-.2-.3-1-.5-1.3-.3-.4-1.7-.4-2.4-1-.3-.2-.2-.6.1-.7 2.2-.6 3.8-2.9 4-4.1-.4-.3-1.7-.6-2.2-1.2-.4-.5.1-1.1.6-.9.5.3 1.3.4 1.8.2V7.4C6.6 4.3 9 2 12 2z"/>'}
+};
+const ORDER=["call","wa","sms","fb","x","ig","tt","sc"];
+const FIELDS=[["phone","رقم الجوال (مع رمز الدولة)","+968 9xxxxxxx"],["fb","فيسبوك (اسم المستخدم)","username"],["x","تويتر X","username"],["ig","انستقرام","username"],["tt","تيك توك","username"],["sc","سناب شات","username"]];
+const GEAR='<svg viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>';
+
+/* ---------- data ---------- */
+const uid=()=>Math.random().toString(36).slice(2,9);
+function defaults(){
+  const names=["المفضلة","العائلة","الأصدقاء","العمل","الأقارب","أخرى"];
+  const pages=names.map((n,i)=>({id:uid(),name:n,color:PC[i],bg:"grad"}));
+  const P=pages.map(p=>p.id);
+  const contacts=[
+   {name:"أبو حمد",phone:"+96890000001",color:0,page:P[0]},{name:"المكتب",phone:"+96824000000",color:1,page:P[0]},
+   {name:"أم سالم",phone:"+96892000003",color:5,page:P[1]},{name:"خالد",phone:"+96891000002",ig:"khalid",sc:"khalid",color:2,page:P[2]},
+   {name:"المطبعة",phone:"+96894000005",fb:"printshop",color:4,page:P[3]},{name:"راشد",phone:"+96893000004",tt:"rashid",color:3,page:P[4]}
+  ].map(c=>({...c,id:uid(),ex:1}));
+  return {pages,contacts};
+}
+let S;
+try{S=JSON.parse(localStorage.getItem("sd2"))}catch(e){}
+if(!S||!Array.isArray(S.pages)){
+  S=defaults();
+  try{const old=JSON.parse(localStorage.getItem("sd_list"));if(Array.isArray(old)&&old.length){S.contacts=old.map(c=>({...c,id:uid(),page:S.pages[0].id}))}}catch(e){}
+}
+const FONTS=[
+ ["plex","بلكس","'Readex Pro','IBM Plex Sans Arabic'","'IBM Plex Sans Arabic'"],
+ ["tajawal","تجوال","'Tajawal'","'Tajawal'"],
+ ["cairo","القاهرة","'Cairo'","'Cairo'"],
+ ["almarai","المراعي","'Almarai'","'Almarai'"],
+ ["changa","تشانغا","'Changa'","'Changa'"],
+ ["kufi","كوفي","'Reem Kufi'","'Tajawal'"],
+ ["amiri","أميري (نسخ)","'Amiri'","'Amiri'"],
+ ["ruqaa","رقعة","'Aref Ruqaa'","'Tajawal'"],
+ ["lalezar","لاله‌زار","'Lalezar'","'Cairo'"]
+];
+const SIZES=[[.9,"صغير"],[1,"عادي"],[1.12,"كبير"],[1.25,"أكبر"]];
+function applyUI(){const u=S.ui||{};const f=FONTS.find(x=>x[0]===u.font)||FONTS[0];const r=document.documentElement.style;
+  r.setProperty("--display",f[2]+",'IBM Plex Sans Arabic',system-ui,sans-serif");r.setProperty("--body",f[3]+",'IBM Plex Sans Arabic',system-ui,sans-serif");
+  r.fontSize=(16*(u.size||1))+"px";document.body.style.fontSize=(14*(u.size||1))+"px"}
+function save(){try{localStorage.setItem("sd2",JSON.stringify(S))}catch(e){toast("الذاكرة ممتلئة — جرّب صورة أصغر")}}
+let edit=false, cur=0;
+const $=s=>document.querySelector(s), layer=$("#layer");
+const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clean=v=>String(v||"").trim().replace(/^@/,"").replace(/^https?:\/\/[^/]+\/@?/,"").replace(/\/.*$/,"");
+function mix(h,t,a){const p=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));const A=p(h),B=p(t);return"#"+A.map((v,i)=>Math.round(v+(B[i]-v)*a).toString(16).padStart(2,"0")).join("")}
+function bgCss(p,type){type=type||p.bg;const c=p.color;
+  if(type==="img"&&p.img)return`background-image:url('${p.img}')`;
+  if(type==="solid")return`background:${c}`;
+  if(type==="dots")return`background:radial-gradient(rgba(255,255,255,.14) 1.5px,transparent 1.6px) 0 0/18px 18px,linear-gradient(170deg,${mix(c,"#ffffff",.08)},${mix(c,"#000000",.45)})`;
+  if(type==="glow")return`background:radial-gradient(circle at 80% 10%,${mix(c,"#ffffff",.35)},transparent 55%),radial-gradient(circle at 10% 90%,${mix(c,"#000000",.2)},transparent 60%),${mix(c,"#000000",.5)}`;
+  if(type==="night")return`background:linear-gradient(180deg,#0b1222,${mix(c,"#0b1222",.35)})`;
+  return`background:linear-gradient(160deg,${mix(c,"#ffffff",.15)},${mix(c,"#000000",.4)})`;
+}
+const BGS=[["grad","تدرج"],["solid","لون سادة"],["dots","نقاط"],["glow","توهج"],["night","ليلي"],["img","صورة"]];
+function avatar(c){return c.photo?`<div class="av" style="background-image:url('${c.photo}')"></div>`:`<div class="av" style="background:${AV[c.color??0]}">${esc((c.name||"؟").trim()[0])}</div>`}
+function shrink(file,size,cb,square){const img=new Image();img.onload=()=>{const cv=document.createElement("canvas");let sx=0,sy=0,sw=img.width,sh=img.height,w,h;
+  if(square){const m=Math.min(sw,sh);sx=(sw-m)/2;sy=(sh-m)/2;sw=sh=m;w=h=size}else{const r=Math.min(1,size/Math.max(sw,sh));w=Math.round(sw*r);h=Math.round(sh*r)}
+  cv.width=w;cv.height=h;cv.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,w,h);cb(cv.toDataURL("image/jpeg",.78))};img.src=URL.createObjectURL(file)}
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1900)}
+
+/* ---------- main render ---------- */
+const pager=$("#pager"), tabs=$("#tabs");
+function render(keep){
+  const sl=pager.scrollLeft;
+  pager.innerHTML=S.pages.map((p,pi)=>{
+    const list=S.contacts.filter(c=>c.page===p.id);
+    return`<section class="page${edit?" editing":""}" data-p="${pi}" style="${bgCss(p)}"><div class="pin">
+     <div class="top"><h2>${esc(p.name)}<small>${list.length} ${list.length===1?"اسم":"أسماء"}</small></h2>
+      <div class="tools"><button class="gbtn${edit?" on":""}" type="button" data-act="edit">${edit?"تم":"تعديل"}</button><button class="gbtn" type="button" data-act="set" aria-label="الإعدادات">${GEAR}</button></div></div>
+     <div class="grid">${list.map(c=>`<button class="tile" type="button" data-c="${c.id}">${avatar(c)}<span class="nm">${esc(c.name)}</span></button>`).join("")}
+      <button class="tile add" type="button" data-add="${p.id}"><div class="av">+</div><span class="nm">إضافة</span></button></div>
+     ${list.some(c=>c.ex)?'<p class="empty">الأسماء الموجودة أمثلة — اضغط «تعديل» لتغييرها أو حذفها</p>':""}
+     ${!list.length?'<p class="empty">الصفحة فارغة — اضغط + لإضافة أول اسم</p>':""}
+    </div></section>`}).join("");
+  tabs.innerHTML=S.pages.map((p,pi)=>`<button class="tab${pi===cur?" cur":""}" type="button" data-t="${pi}"><i style="background:${p.color}"></i>${esc(p.name)}</button>`).join("");
+  if(keep)pager.scrollLeft=sl;
+}
+function goTo(i,smooth){const el=pager.children[i];if(el)el.scrollIntoView({behavior:smooth?"smooth":"auto",inline:"start",block:"nearest"})}
+let st;pager.addEventListener("scroll",()=>{clearTimeout(st);st=setTimeout(()=>{const w=pager.clientWidth;const i=Math.round(Math.abs(pager.scrollLeft)/w);if(i!==cur&&S.pages[i]){cur=i;tabs.querySelectorAll(".tab").forEach((t,k)=>t.classList.toggle("cur",k===i));tabs.children[i]?.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});try{localStorage.setItem("sd2_cur",i)}catch(e){}}},80)});
+tabs.onclick=e=>{const t=e.target.closest(".tab");if(t)goTo(+t.dataset.t,true)};
+pager.onclick=e=>{
+  const a=e.target.closest("[data-act]");if(a){if(a.dataset.act==="edit"){edit=!edit;render(true)}else settings();return}
+  const t=e.target.closest(".tile");if(!t)return;
+  if(t.dataset.add)return form(null,t.dataset.add);
+  const c=S.contacts.find(x=>x.id===t.dataset.c);edit?form(c):sheet(c);
+};
+
+/* ---------- sheets ---------- */
+function open(html){layer.innerHTML=`<div class="scrim"><div class="sheet" role="dialog">${html}</div></div>`;layer.querySelector(".scrim").onclick=e=>{if(e.target.classList.contains("scrim"))close()}}
+function close(){layer.innerHTML=""}
+function sheet(c){
+  const opts=ORDER.map(k=>{const s=SVC[k];const val=s.f==="phone"?String(c.phone||"").replace(/[^\d+]/g,""):clean(c[s.f]);
+    const ic=`<span class="ic" style="background:${s.c}${k==="sc"?";color:#111":""}"><svg viewBox="0 0 24 24">${s.i}</svg></span>${s.n}`;
+    return val?`<a class="opt" href="${esc(s.u(val))}" target="${k==="call"||k==="sms"?"_self":"_blank"}" rel="noopener">${ic}</a>`:`<button type="button" class="opt off" data-miss="${s.n}">${ic}</button>`}).join("");
+  open(`<div class="who">${avatar(c)}<div><b>${esc(c.name)}</b><span>${esc(c.phone||"بدون رقم")}</span></div></div>
+   <div class="opts">${opts}</div>
+   <div class="row"><button class="btn" type="button" id="cp">نسخ الرقم</button><button class="btn" type="button" id="ed">تعديل</button></div>`);
+  layer.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>toast("أضف حساب "+b.dataset.miss+" من «تعديل»"));
+  $("#ed").onclick=()=>form(c);
+  $("#cp").onclick=()=>{const n=c.phone||"";if(!n)return toast("لا يوجد رقم");(navigator.clipboard?navigator.clipboard.writeText(n):Promise.reject()).then(()=>toast("تم نسخ الرقم"),()=>toast(n))};
+}
+function form(orig,pageId){
+  const c=orig?{...orig}:{id:uid(),name:"",color:Math.floor(Math.random()*AV.length),page:pageId};
+  open(`<form id="f"><div class="who">${avatar(c)}<div><b>${orig?"تعديل الاسم":"اسم جديد"}</b></div></div>
+   <label class="l" for="f_name">الاسم</label><input class="f" id="f_name" required value="${esc(c.name)}">
+   <label class="l" for="f_page">الصفحة</label><select class="f" id="f_page">${S.pages.map(p=>`<option value="${p.id}"${p.id===c.page?" selected":""}>${esc(p.name)}</option>`).join("")}</select>
+   <div class="two">${FIELDS.map(([k,l,p])=>`<div${k==="phone"?' style="grid-column:1/-1"':""}><label class="l" for="f_${k}">${l}</label><input class="f ltr" id="f_${k}" placeholder="${p}" inputmode="${k==="phone"?"tel":"text"}" value="${esc(c[k])}"></div>`).join("")}</div>
+   <label class="l">لون الدائرة</label><div class="colors" id="avc">${AV.map((x,j)=>`<button type="button" data-v="${j}" class="${j===c.color&&!c.photo?"sel":""}" style="background:${x}" aria-label="لون ${j+1}"></button>`).join("")}</div>
+   <label class="l" for="f_photo">صورة (اختياري)</label><input class="f" type="file" id="f_photo" accept="image/*">
+   <div class="row"><button class="btn pri" type="submit">حفظ</button>${orig?`<button class="btn danger" type="button" id="del">حذف</button>`:""}<button class="btn" type="button" id="cn">إلغاء</button></div></form>`);
+  layer.querySelectorAll("#avc button").forEach(b=>b.onclick=()=>{c.color=+b.dataset.v;c.photo="";layer.querySelectorAll("#avc button").forEach(x=>x.classList.toggle("sel",x===b));layer.querySelector(".who .av").outerHTML=avatar(c)});
+  $("#f_photo").onchange=e=>{const file=e.target.files[0];if(file)shrink(file,160,u=>{c.photo=u;layer.querySelector(".who .av").outerHTML=avatar(c)},true)};
+  $("#cn").onclick=close;
+  if(orig)$("#del").onclick=e=>{if(e.target.dataset.sure){S.contacts=S.contacts.filter(x=>x.id!==c.id);save();close();render(true);toast("تم الحذف")}else{e.target.dataset.sure=1;e.target.textContent="تأكيد الحذف"}};
+  $("#f").onsubmit=e=>{e.preventDefault();c.name=$("#f_name").value.trim();c.page=$("#f_page").value;
+    FIELDS.forEach(([k])=>c[k]=k==="phone"?$("#f_"+k).value.trim():clean($("#f_"+k).value));delete c.ex;
+    const i=S.contacts.findIndex(x=>x.id===c.id);if(i<0)S.contacts.push(c);else S.contacts[i]=c;
+    save();close();render(true);toast("تم الحفظ")};
+}
+
+/* ---------- settings screen ---------- */
+function settings(){
+  let el=$("#settings");if(!el){el=document.createElement("div");el.id="settings";el.className="settings";document.body.appendChild(el)}
+  const total=S.contacts.length;
+  el.innerHTML=`<div class="pin">
+   <div class="top" style="color:var(--ink)"><h2>الإعدادات</h2><button class="btn" type="button" id="sClose">رجوع</button></div>
+   <div class="sec">الصفحات — اضغط على الصفحة لتعديل اسمها ولونها وخلفيتها</div>
+   <div class="card">${S.pages.map((p,i)=>`<button class="prow" type="button" data-pe="${i}"><span class="thumb" style="${bgCss(p)}"></span><span class="grow">${esc(p.name)}<small>${S.contacts.filter(c=>c.page===p.id).length} أسماء</small></span><span class="chev">‹</span></button>`).join("")}</div>
+   <div class="sec">المظهر</div>
+   <div class="card"><button class="prow" type="button" id="fontRow"><span class="sic" style="background:#7a45a8">ع</span><span class="grow">الخطوط<small>${(FONTS.find(x=>x[0]===(S.ui||{}).font)||FONTS[0])[1]}</small></span><span class="chev">‹</span></button>
+    <button class="prow" type="button" id="sizeRow"><span class="sic" style="background:#c27a1f"><svg viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4zm-6 8h3v7h3v-7h3V9H3z"/></svg></span><span class="grow">حجم الخط<small>${(SIZES.find(x=>x[0]===(S.ui||{}).size)||SIZES[1])[1]}</small></span><span class="chev">‹</span></button></div>
+   <div class="sec">النسخ الاحتياطي</div>
+   <div class="card"><button class="prow" type="button" id="bkOut"><span class="grow">نسخ بياناتي<small>انسخ النص واحفظه في الملاحظات</small></span></button>
+    <button class="prow" type="button" id="bkIn"><span class="grow">استرجاع من نسخة<small>الصق النص المحفوظ</small></span></button></div>
+   <div class="sec">عام</div>
+   <div class="card"><button class="prow" type="button" id="rst"><span class="grow" style="color:#d23b3b">إعادة التطبيق للبداية<small>يحذف كل الأسماء (${total}) والصفحات</small></span></button></div>
+   <p class="note">البيانات محفوظة على هذا الجهاز فقط. خذ نسخة احتياطية قبل مسح بيانات المتصفح.</p>
+  </div>`;
+  el.hidden=false;
+  $("#sClose").onclick=()=>{el.hidden=true;render();goTo(cur)};
+  el.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>pageForm(+b.dataset.pe));
+  $("#fontRow").onclick=fontSheet;$("#sizeRow").onclick=sizeSheet;
+  $("#bkOut").onclick=()=>{const t=JSON.stringify(S);open(`<b style="font-family:var(--display);font-size:1.1rem">نسخة بياناتك</b><p class="note">انسخ النص كاملاً واحفظه في مكان آمن.</p><textarea class="f ltr" id="bkT" rows="6" readonly>${esc(t)}</textarea><div class="row"><button class="btn pri" type="button" id="bkC">نسخ</button><button class="btn" type="button" id="cn">إغلاق</button></div>`);
+    $("#cn").onclick=close;$("#bkC").onclick=()=>{const ta=$("#bkT");(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("تم النسخ"),()=>{ta.select();toast("حدد النص وانسخه")})}};
+  $("#bkIn").onclick=()=>{open(`<b style="font-family:var(--display);font-size:1.1rem">استرجاع نسخة</b><p class="note">الصق النص اللي حفظته سابقاً. سيستبدل البيانات الحالية.</p><textarea class="f ltr" id="bkT" rows="6"></textarea><div class="row"><button class="btn pri" type="button" id="bkR">استرجاع</button><button class="btn" type="button" id="cn">إلغاء</button></div>`);
+    $("#cn").onclick=close;$("#bkR").onclick=()=>{try{const d=JSON.parse($("#bkT").value);if(!Array.isArray(d.pages)||!Array.isArray(d.contacts))throw 0;S=d;save();applyUI();close();settings();toast("تم الاسترجاع")}catch(e){toast("النص غير صحيح — تأكد أنك نسخته كاملاً")}}};
+  $("#rst").onclick=e=>{const b=e.currentTarget;if(b.dataset.sure){S=defaults();save();applyUI();cur=0;settings();toast("تمت الإعادة")}else{b.dataset.sure=1;b.querySelector(".grow").firstChild.textContent="اضغط مرة ثانية للتأكيد"}};
+}
+function preview(){const p=S.pages[cur]||S.pages[0];const c=S.contacts[0]||{name:"سالم",color:0};
+  return`<div class="prev" style="${bgCss(p)};background-size:cover">${avatar(c)}<div><div style="font:700 1.4rem var(--display)">${esc(p.name)}</div><div style="font:600 .85rem var(--body)">${esc(c.name)}</div></div></div>`}
+function fontSheet(){
+  S.ui=S.ui||{};
+  const draw=()=>{layer.querySelector("#pvw").innerHTML=preview();layer.querySelectorAll(".fopt").forEach(b=>b.classList.toggle("sel",b.dataset.f===(S.ui.font||"plex")))};
+  open(`<b style="font-family:var(--display);font-size:1.2rem">الخطوط</b><p class="note">اختر الخط اللي يعجبك، ويتغير فوراً.</p><div id="pvw" style="margin-top:12px"></div>
+   <div class="fopts">${FONTS.map(f=>`<button type="button" class="fopt" data-f="${f[0]}"><b style="font-family:${f[2]},sans-serif">اتصال سريع</b><small>${f[1]}</small></button>`).join("")}</div>
+   <div class="row"><button class="btn pri" type="button" id="cn">تم</button></div>`);
+  draw();
+  layer.querySelectorAll(".fopt").forEach(b=>b.onclick=()=>{S.ui.font=b.dataset.f;applyUI();save();draw()});
+  $("#cn").onclick=()=>{close();settings()};
+}
+function sizeSheet(){
+  S.ui=S.ui||{};
+  const draw=()=>{layer.querySelector("#pvw").innerHTML=preview();layer.querySelectorAll(".szs button").forEach(b=>b.classList.toggle("sel",+b.dataset.s===(S.ui.size||1)))};
+  open(`<b style="font-family:var(--display);font-size:1.2rem">حجم الخط</b><p class="note">يكبّر الأسماء والعناوين في كل الصفحات.</p><div id="pvw" style="margin-top:12px"></div>
+   <div class="szs">${SIZES.map(([v,n])=>`<button type="button" data-s="${v}" style="font-size:${14*v}px">${n}</button>`).join("")}</div>
+   <div class="row"><button class="btn pri" type="button" id="cn">تم</button></div>`);
+  draw();
+  layer.querySelectorAll(".szs button").forEach(b=>b.onclick=()=>{S.ui.size=+b.dataset.s;applyUI();save();draw()});
+  $("#cn").onclick=()=>{close();settings()};
+}
+function pageForm(i){
+  const p={...S.pages[i]};
+  const draw=()=>{layer.querySelector("#pv").setAttribute("style",bgCss(p)+";height:110px;border-radius:16px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:12px;color:#fff;font:700 1.3rem var(--display);text-shadow:0 2px 8px rgba(0,0,0,.4)");layer.querySelector("#pv").textContent=p.name||"—";
+    layer.querySelectorAll(".bgopt").forEach(b=>{b.setAttribute("style",bgCss(p,b.dataset.b)+(b.dataset.b==="img"&&!p.img?";background:var(--bg);color:var(--ink);text-shadow:none":""));b.classList.toggle("sel",b.dataset.b===p.bg)});
+    layer.querySelectorAll("#pcol button").forEach(b=>b.classList.toggle("sel",b.dataset.v===p.color))};
+  open(`<form id="pf"><div id="pv"></div>
+   <label class="l" for="p_name">اسم الصفحة</label><input class="f" id="p_name" required value="${esc(p.name)}">
+   <label class="l">لون الصفحة</label><div class="colors" id="pcol">${PC.map(x=>`<button type="button" data-v="${x}" style="background:${x}" aria-label="لون"></button>`).join("")}</div>
+   <label class="l">الخلفية</label><div class="bgopts">${BGS.map(([k,n])=>`<button type="button" class="bgopt" data-b="${k}">${n}</button>`).join("")}</div>
+   <input type="file" id="p_img" accept="image/*" hidden>
+   <div class="row"><button class="btn pri" type="submit">حفظ</button>
+    ${i>0?'<button class="btn" type="button" id="pUp">تقديم الصفحة</button>':""}<button class="btn" type="button" id="cn">إلغاء</button></div></form>`);
+  draw();
+  $("#p_name").oninput=e=>{p.name=e.target.value;draw()};
+  layer.querySelectorAll("#pcol button").forEach(b=>b.onclick=()=>{p.color=b.dataset.v;draw()});
+  layer.querySelectorAll(".bgopt").forEach(b=>b.onclick=()=>{if(b.dataset.b==="img"){$("#p_img").click();return}p.bg=b.dataset.b;draw()});
+  $("#p_img").onchange=e=>{const f=e.target.files[0];if(f)shrink(f,900,u=>{p.img=u;p.bg="img";draw()})};
+  $("#cn").onclick=close;
+  if(i>0)$("#pUp").onclick=()=>{S.pages[i]=p;[S.pages[i-1],S.pages[i]]=[S.pages[i],S.pages[i-1]];save();close();settings();toast("تم تغيير الترتيب")};
+  $("#pf").onsubmit=e=>{e.preventDefault();p.name=$("#p_name").value.trim();if(p.bg!=="img")delete p.img;S.pages[i]=p;save();close();settings();toast("تم حفظ الصفحة")};
+}
+
+try{cur=Math.min(+localStorage.getItem("sd2_cur")||0,S.pages.length-1)}catch(e){}
+applyUI();render();requestAnimationFrame(()=>goTo(cur));
+</script>
+</body>
+</html>
