@@ -274,6 +274,7 @@ function render(keep){
      <div class="top"><h2>${esc(p.name)}<small>${list.length} ${list.length===1?"اسم":"أسماء"}</small></h2>
       <div class="tools"><button class="gbtn" type="button" data-act="rename" aria-label="تغيير اسم الصفحة">${PEN}</button><button class="gbtn${edit?" on":""}" type="button" data-act="edit">${edit?"تم":"تعديل"}</button><button class="gbtn${hid()?" on":""}" type="button" data-act="hide" aria-label="إخفاء الأسماء">${hid()?EYEOFF:EYE}</button><button class="gbtn" type="button" data-act="set" aria-label="الإعدادات">${GEAR}</button></div></div>
      ${redialBox()}
+     ${pi===0&&S.contacts.some(c=>!c.ex)&&(!S.lastBk||Date.now()-S.lastBk>7*864e5)?'<button type="button" class="rd" data-act="set" style="all:unset;display:block;cursor:pointer;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:10px 14px;margin-bottom:18px;font-size:.82rem;font-weight:600">☁️ احفظ نسخة من أسماءك في Google Drive — اضغط هنا</button>':""}
      <div class="grid">${list.map(c=>`<button class="tile" type="button" data-c="${c.id}">${avatar(c)}<span class="nm">${nm(c)}</span></button>`).join("")}
       <button class="tile add" type="button" data-add="${p.id}"><div class="av">+</div><span class="nm">إضافة</span></button></div>
      ${list.some(c=>c.ex)?'<p class="empty">الأسماء الموجودة أمثلة — اضغط «تعديل» لتغييرها أو حذفها</p>':""}
@@ -460,7 +461,9 @@ function settings(){
    <div class="sec">جهات الاتصال</div>
    <div class="card"><button class="prow" type="button" id="impRow"><span class="sic" style="background:#2fa84f">${PERSON}</span><span class="grow">استيراد من جهات الاتصال<small>أضف أسماء من جوالك دفعة وحدة</small></span><span class="chev">‹</span></button></div>
    <div class="sec">النسخ الاحتياطي</div>
-   <div class="card"><button class="prow" type="button" id="bkOut"><span class="grow">نسخ بياناتي<small>انسخ النص واحفظه في الملاحظات</small></span></button>
+   <div class="card"><button class="prow" type="button" id="bkFile"><span class="sic" style="background:#1fa463">⬆</span><span class="grow">حفظ نسخة في Google Drive أو الملفات<small>${S.lastBk?"آخر نسخة: "+ago(S.lastBk):"ما أخذت نسخة للحين"}</small></span><span class="chev">‹</span></button>
+    <button class="prow" type="button" id="bkLoad"><span class="sic" style="background:#4285f4">⬇</span><span class="grow">استرجاع من ملف<small>اختر ملف النسخة من Google Drive أو الملفات</small></span><span class="chev">‹</span></button>
+    <button class="prow" type="button" id="bkOut"><span class="grow">نسخ بياناتي كنص<small>انسخ النص واحفظه في الملاحظات</small></span></button>
     <button class="prow" type="button" id="bkIn"><span class="grow">استرجاع من نسخة<small>الصق النص المحفوظ</small></span></button></div>
    <div class="sec">عام</div>
    <div class="card"><button class="prow" type="button" id="rst"><span class="grow" style="color:#d23b3b">إعادة التطبيق للبداية<small>يحذف كل الأسماء (${total}) والصفحات</small></span></button></div>
@@ -477,6 +480,12 @@ function settings(){
   $("#tcRow").onclick=()=>{S.ui=S.ui||{};S.ui.tc=S.ui.tc==="black"?"white":"black";save();applyUI();settings()};
   el.querySelectorAll("[data-ga]").forEach(b=>b.onclick=()=>{const k=b.dataset.ga,o=["single","double","long","none"],m={...gaMap()};const nx=o[(o.indexOf(m[k]||"none")+1)%4];if(nx!=="none")Object.keys(m).forEach(x=>{if(x!==k&&m[x]===nx)m[x]="none"});m[k]=nx;S.ui=S.ui||{};S.ui.ga=m;save();settings()});
   $("#rdRow").onclick=()=>{S.ui=S.ui||{};S.ui.redial=S.ui.redial===false;save();settings();toast(S.ui.redial?"خانة إعادة الاتصال ظاهرة":"تم إخفاء الخانة")};
+  $("#bkFile").onclick=async()=>{S.lastBk=Date.now();save();const d=new Date(),nm="اتصال-سريع-"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()+".json";
+    const file=new File([JSON.stringify(S)],nm,{type:"application/json"});
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"نسخة اتصال سريع"});toast("اختر Google Drive أو حفظ في الملفات");settings();return}}catch(e){if(e&&e.name==="AbortError")return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=nm;document.body.appendChild(a);a.click();a.remove();toast("تم تنزيل ملف النسخة");settings()};
+  $("#bkLoad").onclick=()=>{let inp=$("#bkIn2");if(!inp){inp=document.createElement("input");inp.type="file";inp.id="bkIn2";inp.accept=".json,application/json,text/plain";inp.hidden=true;document.body.appendChild(inp)}
+    inp.value="";inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.pages)||!Array.isArray(d.contacts))throw 0;S=d;save();applyUI();settings();toast("تم استرجاع "+d.contacts.length+" اسم")}catch(e){toast("الملف غير صحيح")}};inp.click()};
   $("#bkOut").onclick=()=>{const t=JSON.stringify(S);open(`<b style="font-family:var(--display);font-size:1.1rem">نسخة بياناتك</b><p class="note">انسخ النص كاملاً واحفظه في مكان آمن.</p><textarea class="f ltr" id="bkT" rows="6" readonly>${esc(t)}</textarea><div class="row"><button class="btn pri" type="button" id="bkC">نسخ</button><button class="btn" type="button" id="cn">إغلاق</button></div>`);
     $("#cn").onclick=close;$("#bkC").onclick=()=>{const ta=$("#bkT");(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("تم النسخ"),()=>{ta.select();toast("حدد النص وانسخه")})}};
   $("#bkIn").onclick=()=>{open(`<b style="font-family:var(--display);font-size:1.1rem">استرجاع نسخة</b><p class="note">الصق النص اللي حفظته سابقاً. سيستبدل البيانات الحالية.</p><textarea class="f ltr" id="bkT" rows="6"></textarea><div class="row"><button class="btn pri" type="button" id="bkR">استرجاع</button><button class="btn" type="button" id="cn">إلغاء</button></div>`);
