@@ -44,6 +44,22 @@ button{font-family:var(--body)}
 .tile{all:unset;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;position:relative;min-width:0;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .av{width:100%;max-width:none;aspect-ratio:1;border-radius:var(--avr,50%);display:grid;place-items:center;color:#fff;font:700 1.9rem var(--display);background-size:cover;background-position:center;box-shadow:0 5px 14px rgba(0,0,0,.25);transition:transform .15s;border:2px solid rgba(255,255,255,.35)}
 .tile:active .av{transform:scale(.92)}
+.av{position:relative;overflow:hidden}
+.d3 .av{border:0;box-shadow:inset 0 -7px 14px rgba(0,0,0,.38),inset 0 5px 10px rgba(255,255,255,.38),0 10px 18px rgba(0,0,0,.38),0 3px 0 rgba(0,0,0,.18);text-shadow:0 2px 3px rgba(0,0,0,.35)}
+.d3 .av::before{content:"";position:absolute;left:16%;right:16%;top:5%;height:38%;border-radius:50%/60% 60% 40% 40%;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
+.d3 .tile .av{transform:perspective(500px) rotateX(8deg)}
+.d3 .tile:active .av{transform:perspective(500px) rotateX(8deg) scale(.92) translateY(2px)}
+.d3 .add .av::before{display:none}
+.d3 .add .av{box-shadow:none;border:2px dashed rgba(255,255,255,.55)}
+.phbox{display:flex;align-items:center;gap:14px;margin:4px 0 6px}
+.phbox .pav{position:relative;width:84px;flex:0 0 auto;cursor:pointer;border:0;background:none;padding:0}
+.phbox .pav .av{width:84px;max-width:84px;font-size:2rem}
+.phbox .pav i{position:absolute;bottom:-2px;left:-2px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;border:3px solid var(--surface);font-style:normal;font-size:.9rem}
+.phbox .grow{flex:1;display:flex;flex-direction:column;gap:8px}
+.phbox .btn{width:100%}
+.grads{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.grads button{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.grads button.sel{border-color:var(--ink)}
 .nm{font-size:.86rem;font-weight:600;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .add .av{background:rgba(255,255,255,.12);border:2px dashed rgba(255,255,255,.55);box-shadow:none;font-size:1.8rem;font-weight:500}
 .editing .tile:not(.add) .av{animation:wob .3s infinite alternate}
@@ -150,6 +166,7 @@ input.ltr,textarea.ltr{direction:ltr;text-align:left}
 
 <script>
 const AV=["#c0574b","#4a7489","#c98a3a","#8a4fb8","#2f8f6b","#d26a9a","#3b5bdb","#5c6b7a"];
+const GR=["linear-gradient(135deg,#ff9a8b,#c0392b)","linear-gradient(135deg,#6dd5fa,#1f4e9b)","linear-gradient(135deg,#f6d365,#d9822b)","linear-gradient(135deg,#c471f5,#5b2a9b)","linear-gradient(135deg,#7ee8a6,#1d7a55)","linear-gradient(135deg,#ff9ac9,#b83f73)","linear-gradient(135deg,#a1c4fd,#3b5bdb)","linear-gradient(135deg,#434343,#0e0e0e)","linear-gradient(135deg,#fddb92,#b8860b)","linear-gradient(135deg,#43e97b,#38a3d1)"];
 const PC=["#2b4c9b","#b5473a","#2f7d5b","#7a45a8","#c27a1f","#1f7f8f","#b83f73","#3d4a63","#8f6b3a","#0f5f4a"];
 const SVC={
  call:{n:"اتصال",c:"#2fa84f",f:"phone",u:v=>"tel:"+v,i:'<path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>'},
@@ -201,7 +218,7 @@ const SIZES=[[.9,"صغير"],[1,"عادي"],[1.12,"كبير"],[1.25,"أكبر"]]
 function applyUI(){const u=S.ui||{};const f=FONTS.find(x=>x[0]===(u.font||"cairo"))||FONTS[2];const r=document.documentElement.style;
   r.setProperty("--display",f[2]+",'IBM Plex Sans Arabic',system-ui,sans-serif");r.setProperty("--body",f[3]+",'IBM Plex Sans Arabic',system-ui,sans-serif");
   r.fontSize=(16*(u.size||1)+4)+"px";document.body.style.fontSize=(14*(u.size||1)+4)+"px";
-  r.setProperty("--avr",({circle:"50%",round:"26%",square:"0"})[u.shape||"circle"]);r.setProperty("--tc",u.tc==="black"?"#000":"#fff")}
+  r.setProperty("--avr",({circle:"50%",round:"26%",square:"0"})[u.shape||"circle"]);r.setProperty("--tc",u.tc==="black"?"#000":"#fff");document.body.classList.toggle("d3",u.d3!==false)}
 function save(){try{localStorage.setItem("sd2",JSON.stringify(S))}catch(e){toast("الذاكرة ممتلئة — جرّب صورة أصغر")}}
 let edit=false, cur=0;
 const $=s=>document.querySelector(s), layer=$("#layer");
@@ -222,7 +239,7 @@ const hid=()=>!!(S.ui||{}).hide;
 const nm=c=>hid()?"••••":esc(c.name);
 function avatar(c,show){const m=hid()&&!show;
   if(c.photo&&!m)return`<div class="av" style="background-image:url('${c.photo}')"></div>`;
-  return`<div class="av" style="background:${AV[c.color??0]}">${m?PERSON:esc((c.name||"؟").trim()[0])}</div>`}
+  return`<div class="av" style="background:${c.grad!=null&&GR[c.grad]?GR[c.grad]:AV[c.color??0]}">${m?PERSON:esc((c.name||"؟").trim()[0])}</div>`}
 function shrink(file,size,cb,square){const img=new Image();img.onload=()=>{const cv=document.createElement("canvas");let sx=0,sy=0,sw=img.width,sh=img.height,w,h;
   if(square){const m=Math.min(sw,sh);sx=(sw-m)/2;sy=(sh-m)/2;sw=sh=m;w=h=size}else{const r=Math.min(1,size/Math.max(sw,sh));w=Math.round(sw*r);h=Math.round(sh*r)}
   cv.width=w;cv.height=h;cv.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,w,h);cb(cv.toDataURL("image/jpeg",.78))};img.src=URL.createObjectURL(file)}
@@ -317,19 +334,26 @@ function sheet(c){
 }
 function form(orig,pageId){
   const c=orig?{...orig}:{id:uid(),name:"",color:Math.floor(Math.random()*AV.length),page:pageId};
-  open(`<form id="f"><div class="who">${avatar(c)}<div><b>${orig?"تعديل الاسم":"اسم جديد"}</b></div></div>
+  open(`<form id="f"><b style="font-family:var(--display);font-size:1.2rem;display:block;margin-bottom:10px">${orig?"تعديل الاسم":"اسم جديد"}</b>
+   <div class="phbox"><button type="button" class="pav" id="f_av" aria-label="اختيار صورة">${avatar(c,1)}<i>📷</i></button>
+    <div class="grow"><button class="btn pri" type="button" id="f_gal">🖼️ صورة من الاستوديو</button><button class="btn" type="button" id="f_nop"${c.photo?"":" hidden"}>حذف الصورة</button></div></div>
    <button class="btn" type="button" id="f_pick" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:20px;height:20px;display:grid;place-items:center">${PERSON}</span>اختيار من جهات الاتصال</button>
    <label class="l" for="f_name">الاسم</label><input class="f" id="f_name" required value="${esc(c.name)}">
    <label class="l" for="f_page">الصفحة</label><select class="f" id="f_page">${S.pages.map(p=>`<option value="${p.id}"${p.id===c.page?" selected":""}>${esc(p.name)}</option>`).join("")}</select>
    <div class="two">${FIELDS.map(([k,l,p])=>`<div${k==="phone"||k==="wa"?' style="grid-column:1/-1"':""}><label class="l" for="f_${k}">${l}</label><input class="f ltr" id="f_${k}" placeholder="${p}" inputmode="${k==="phone"?"tel":"text"}" value="${esc(c[k])}"></div>`).join("")}</div>
-   <label class="l">لون الدائرة</label><div class="colors" id="avc">${AV.map((x,j)=>`<button type="button" data-v="${j}" class="${j===c.color&&!c.photo?"sel":""}" style="background:${x}" aria-label="لون ${j+1}"></button>`).join("")}</div>
-   <label class="l" for="f_photo">صورة (اختياري)</label><input class="f" type="file" id="f_photo" accept="image/*">
+   <label class="l">الخلفية — لون أو تدرّج (إذا ما فيه صورة)</label><div class="colors" id="avc">${AV.map((x,j)=>`<button type="button" data-v="${j}" class="${j===c.color&&c.grad==null&&!c.photo?"sel":""}" style="background:${x}" aria-label="لون ${j+1}"></button>`).join("")}</div>
+   <div class="grads" id="avg">${GR.map((x,j)=>`<button type="button" data-g="${j}" class="${j===c.grad&&!c.photo?"sel":""}" style="background:${x}" aria-label="تدرج ${j+1}"></button>`).join("")}</div>
+   <input type="file" id="f_photo" accept="image/*" hidden>
    <div class="row"><button class="btn pri" type="submit">حفظ</button>${orig?`<button class="btn danger" type="button" id="del">حذف</button>`:""}<button class="btn" type="button" id="cn">إلغاء</button></div></form>`);
-  layer.querySelectorAll("#avc button").forEach(b=>b.onclick=()=>{c.color=+b.dataset.v;c.photo="";layer.querySelectorAll("#avc button").forEach(x=>x.classList.toggle("sel",x===b));layer.querySelector(".who .av").outerHTML=avatar(c)});
-  $("#f_photo").onchange=e=>{const file=e.target.files[0];if(file)shrink(file,160,u=>{c.photo=u;layer.querySelector(".who .av").outerHTML=avatar(c)},true)};
+  const redraw=()=>{$("#f_av .av").outerHTML=avatar(c,1);$("#f_nop").hidden=!c.photo;layer.querySelectorAll("#avc button").forEach(x=>x.classList.toggle("sel",!c.photo&&c.grad==null&&+x.dataset.v===c.color));layer.querySelectorAll("#avg button").forEach(x=>x.classList.toggle("sel",!c.photo&&+x.dataset.g===c.grad))};
+  layer.querySelectorAll("#avc button").forEach(b=>b.onclick=()=>{c.color=+b.dataset.v;c.grad=null;c.photo="";redraw()});
+  layer.querySelectorAll("#avg button").forEach(b=>b.onclick=()=>{c.grad=+b.dataset.g;c.photo="";redraw()});
+  $("#f_av").onclick=$("#f_gal").onclick=()=>$("#f_photo").click();
+  $("#f_nop").onclick=()=>{c.photo="";redraw();toast("تم حذف الصورة")};
+  $("#f_photo").onchange=e=>{const file=e.target.files[0];if(file)shrink(file,240,u=>{c.photo=u;redraw();toast("تمت إضافة الصورة")},true)};
   $("#cn").onclick=close;
   if(orig)$("#del").onclick=e=>{if(e.target.dataset.sure){S.contacts=S.contacts.filter(x=>x.id!==c.id);save();close();render(true);toast("تم الحذف")}else{e.target.dataset.sure=1;e.target.textContent="تأكيد الحذف"}};
-  $("#f_pick").onclick=()=>pickContacts(false,list=>{const x=list[0];if(!x)return;$("#f_name").value=x.name||"";$("#f_phone").value=x.phone||"";if(x.photo){c.photo=x.photo;layer.querySelector(".who .av").outerHTML=avatar(c,1)}toast("تم جلب "+(x.name||"الجهة"))});
+  $("#f_pick").onclick=()=>pickContacts(false,list=>{const x=list[0];if(!x)return;$("#f_name").value=x.name||"";$("#f_phone").value=x.phone||"";if(x.photo){c.photo=x.photo;redraw()}toast("تم جلب "+(x.name||"الجهة"))});
   $("#f").onsubmit=e=>{e.preventDefault();c.name=$("#f_name").value.trim();c.page=$("#f_page").value;
     FIELDS.forEach(([k])=>c[k]=k==="phone"?$("#f_"+k).value.trim():clean($("#f_"+k).value));delete c.ex;
     const i=S.contacts.findIndex(x=>x.id===c.id);if(i<0)S.contacts.push(c);else S.contacts[i]=c;
@@ -427,6 +451,7 @@ function settings(){
     <button class="prow" type="button" id="sizeRow"><span class="sic" style="background:#c27a1f"><svg viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4zm-6 8h3v7h3v-7h3V9H3z"/></svg></span><span class="grow">حجم الخط<small>${(SIZES.find(x=>x[0]===(S.ui||{}).size)||SIZES[1])[1]}</small></span><span class="chev">‹</span></button>
     <button class="prow" type="button" id="rdRow"><span class="sic" style="background:#2f7d5b">${REDIAL}</span><span class="grow">خانة إعادة الاتصال<small>${(S.ui||{}).redial===false?"مخفية":"ظاهرة"} — اضغط للتبديل</small></span><span class="chev">${(S.ui||{}).redial===false?"○":"●"}</span></button>
     <button class="prow" type="button" id="shapeRow"><span class="sic" style="background:#5c6b7a">◐</span><span class="grow">شكل الأيقونة<small>${({circle:"دائري",round:"مربع مدور",square:"مربع"})[(S.ui||{}).shape||"circle"]} — اضغط للتغيير</small></span><span class="chev">‹</span></button>
+    <button class="prow" type="button" id="d3Row"><span class="sic" style="background:linear-gradient(135deg,#6dd5fa,#1f4e9b);box-shadow:inset 0 -3px 6px rgba(0,0,0,.35),inset 0 3px 5px rgba(255,255,255,.4)">3D</span><span class="grow">أيقونات ثلاثية الأبعاد<small>${(S.ui||{}).d3===false?"غير مفعّلة":"مفعّلة"} — اضغط للتبديل</small></span><span class="chev">${(S.ui||{}).d3===false?"○":"●"}</span></button>
     <button class="prow" type="button" id="tcRow"><span class="sic" style="background:#8a4fb8">أ</span><span class="grow">لون النص<small>${(S.ui||{}).tc==="black"?"أسود":"أبيض"} — اضغط للتغيير</small></span><span class="chev">‹</span></button>
     <button class="prow" type="button" id="hideRow"><span class="sic" style="background:#3d4a63">${EYEOFF}</span><span class="grow">إخفاء الأسماء<small>${hid()?"مفعّل — الأسماء والصور مخفية":"غير مفعّل"} — اضغط للتبديل</small></span><span class="chev">${hid()?"●":"○"}</span></button></div>
    <div class="sec">الإجراء عند الضغط على الاسم</div>
@@ -448,6 +473,7 @@ function settings(){
   $("#hideRow").onclick=()=>{S.ui=S.ui||{};S.ui.hide=!S.ui.hide;save();settings();toast(S.ui.hide?"تم إخفاء الأسماء":"الأسماء ظاهرة")};
   $("#impRow").onclick=()=>pickContacts(true,list=>importSheet(list));
   $("#shapeRow").onclick=()=>{S.ui=S.ui||{};const o=["circle","round","square"];S.ui.shape=o[(o.indexOf(S.ui.shape||"circle")+1)%3];save();applyUI();settings()};
+  $("#d3Row").onclick=()=>{S.ui=S.ui||{};S.ui.d3=S.ui.d3===false;save();applyUI();settings();toast(S.ui.d3?"الأيقونات صارت 3D":"رجعت الأيقونات مسطحة")};
   $("#tcRow").onclick=()=>{S.ui=S.ui||{};S.ui.tc=S.ui.tc==="black"?"white":"black";save();applyUI();settings()};
   el.querySelectorAll("[data-ga]").forEach(b=>b.onclick=()=>{const k=b.dataset.ga,o=["single","double","long","none"],m={...gaMap()};const nx=o[(o.indexOf(m[k]||"none")+1)%4];if(nx!=="none")Object.keys(m).forEach(x=>{if(x!==k&&m[x]===nx)m[x]="none"});m[k]=nx;S.ui=S.ui||{};S.ui.ga=m;save();settings()});
   $("#rdRow").onclick=()=>{S.ui=S.ui||{};S.ui.redial=S.ui.redial===false;save();settings();toast(S.ui.redial?"خانة إعادة الاتصال ظاهرة":"تم إخفاء الخانة")};
