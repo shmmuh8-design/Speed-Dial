@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
 <title>اتصال سريع</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Aref+Ruqaa:wght@400;700&family=Lalezar&family=Changa:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Aref+Ruqaa:wght@400;700&family=Lalezar&family=Changa:wght@400;600&display=swap">
 <style>
 /* Layout: 6 صفحات أفقية بخلفيات ملونة + شريط تبويب سفلي + شاشة إعدادات مستقلة + ورقة سفلية للتواصل */
 :root{
@@ -170,7 +170,7 @@ const GR=["linear-gradient(135deg,#ff9a8b,#c0392b)","linear-gradient(135deg,#6dd
 const PC=["#2b4c9b","#b5473a","#2f7d5b","#7a45a8","#c27a1f","#1f7f8f","#b83f73","#3d4a63","#8f6b3a","#0f5f4a"];
 const SVC={
  call:{n:"اتصال",c:"#2fa84f",f:"phone",u:v=>"tel:"+v,i:'<path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>'},
- wa:{n:"واتساب",c:"#25d366",f:"wa",u:v=>"https://wa.me/"+v.replace(/\D/g,""),i:'<path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.2.3 0 .5.1.3.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.2.1.7-.1 1.3z"/>'},
+ wa:{n:"واتساب",c:"#25d366",f:"wa",u:v=>"https://wa.me/"+waNum(v),i:'<path d="M12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.2.3 0 .5.1.3.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.2.1.7-.1 1.3z"/>'},
  sms:{n:"رسالة",c:"#34a0f0",f:"phone",u:v=>"sms:"+v,i:'<path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7zm6 5H7v-2h6zm4-6H7V6h10z"/>'},
  fb:{n:"فيسبوك",c:"#1877f2",f:"fb",u:v=>"https://m.me/"+v,i:'<path d="M14 13.5h2.5l1-4H14v-2c0-1 0-2 2-2h1.5V2.1A21 21 0 0 0 14.6 2C12 2 10 3.7 10 6.7v2.8H7v4h3V22h4z"/>'},
  x:{n:"تويتر X",c:"#111111",f:"x",u:v=>"https://x.com/"+v,i:'<path d="M17.8 3h3.1l-6.7 7.6L22 21h-6.2l-4.8-6.3L5.5 21H2.4l7.2-8.2L2 3h6.3l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.5z"/>'},
@@ -204,6 +204,7 @@ if(!S||!Array.isArray(S.pages)){
   try{const old=JSON.parse(localStorage.getItem("sd_list"));if(Array.isArray(old)&&old.length){S.contacts=old.map(c=>({...c,id:uid(),page:S.pages[0].id}))}}catch(e){}
 }
 const FONTS=[
+ ["loopo","لوبو","'IBM Plex Sans Arabic'","'IBM Plex Sans Arabic'"],
  ["plex","بلكس","'Readex Pro','IBM Plex Sans Arabic'","'IBM Plex Sans Arabic'"],
  ["tajawal","تجوال","'Tajawal'","'Tajawal'"],
  ["cairo","القاهرة","'Cairo'","'Cairo'"],
@@ -215,7 +216,7 @@ const FONTS=[
  ["lalezar","لاله‌زار","'Lalezar'","'Cairo'"]
 ];
 const SIZES=[[.9,"صغير"],[1,"عادي"],[1.12,"كبير"],[1.25,"أكبر"]];
-function applyUI(){const u=S.ui||{};const f=FONTS.find(x=>x[0]===(u.font||"cairo"))||FONTS[2];const r=document.documentElement.style;
+function applyUI(){const u=S.ui||{};const f=FONTS.find(x=>x[0]===(u.font||"loopo"))||FONTS[0];const r=document.documentElement.style;
   r.setProperty("--display",f[2]+",'IBM Plex Sans Arabic',system-ui,sans-serif");r.setProperty("--body",f[3]+",'IBM Plex Sans Arabic',system-ui,sans-serif");
   r.fontSize=(16*(u.size||1)+4)+"px";document.body.style.fontSize=(14*(u.size||1)+4)+"px";
   r.setProperty("--avr",({circle:"50%",round:"26%",square:"0"})[u.shape||"circle"]);r.setProperty("--tc",u.tc==="black"?"#000":"#fff");document.body.classList.toggle("d3",u.d3!==false)}
@@ -252,6 +253,8 @@ function valOf(c,k){
   if(k==="wa"){const w=clean(c.wa);return w?w.replace(/\D/g,""):String(c.phone||"").replace(/\D/g,"")}
   return SVC[k].f==="phone"?String(c.phone||"").replace(/[^\d+]/g,""):clean(c[SVC[k].f]);
 }
+function waNum(v){let d=String(v||"").replace(/\D/g,"").replace(/^00/,"");if(d.length===8&&/^[279]/.test(d))d="968"+d;return d}
+function openWA(url){const n=url.replace(/\D/g,"");location.href="whatsapp://send?phone="+n;setTimeout(()=>{if(!document.hidden)location.href="https://wa.me/"+n},1500)}
 function linkFor(c,k){const val=valOf(c,k);return val?SVC[k].u(val):""}
 function ago(t){const m=Math.floor((Date.now()-t)/60000);if(m<1)return"الآن";if(m<60)return"قبل "+m+" د";const h=Math.floor(m/60);if(h<24)return"قبل "+h+" س";const d=Math.floor(h/24);return d===1?"أمس":"قبل "+d+" أيام"}
 function logUse(c,k){S.recent=(S.recent||[]).filter(r=>!(r.id===c.id&&r.k===k));S.recent.unshift({id:c.id,k,t:Date.now()});S.recent=S.recent.slice(0,12);save()}
@@ -291,7 +294,7 @@ document.getElementById("dialBtn").innerHTML='<svg viewBox="0 0 24 24" style="wi
 document.getElementById("dialBtn").onclick=dialer;
 pager.onclick=e=>{
   const a=e.target.closest("[data-act]");if(a){if(a.dataset.act==="edit"){edit=!edit;render(true)}else if(a.dataset.act==="rename"){pageForm(+a.closest(".page").dataset.p,true)}else if(a.dataset.act==="hide"){S.ui=S.ui||{};S.ui.hide=!S.ui.hide;save();render(true);toast(S.ui.hide?"تم إخفاء الأسماء":"الأسماء ظاهرة")}else if(a.dataset.act==="rdclr"){if(a.dataset.sure){S.recent=[];save();render(true);toast("تم مسح القائمة")}else{a.dataset.sure=1;a.textContent="تأكيد المسح"}}else settings();return}
-  const rd=e.target.closest(".rdi");if(rd){const c=S.contacts.find(x=>x.id===rd.dataset.rid);if(c){logUse(c,rd.dataset.rk);setTimeout(()=>render(true),400)}return}
+  const rd=e.target.closest(".rdi");if(rd){const c=S.contacts.find(x=>x.id===rd.dataset.rid);if(c){if(rd.dataset.rk==="wa"){e.preventDefault();openWA(rd.getAttribute("href"))}logUse(c,rd.dataset.rk);setTimeout(()=>render(true),400)}return}
   const t=e.target.closest(".tile");if(!t)return;
   if(t.dataset.add)return form(null,t.dataset.add);
   const c=S.contacts.find(x=>x.id===t.dataset.c);if(!c)return;
@@ -311,7 +314,7 @@ function doGesture(g,tile){
   const k=chanFor(g);if(!k)return sheet(c);
   const url=linkFor(c,k);if(!url)return toast("ما عنده "+SVC[k].n+" — أضفه من «تعديل»");
   logUse(c,k);
-  if(k==="call"||k==="sms")location.href=url;else window.open(url,"_blank","noopener");
+  if(k==="call"||k==="sms")location.href=url;else if(k==="wa")openWA(url);else window.open(url,"_blank","noopener");
   setTimeout(()=>render(true),400);
 }
 let pressT=null,longFired=false,tapP=null;
@@ -329,7 +332,7 @@ function sheet(c){
    <div class="opts">${opts}</div>
    <div class="row"><button class="btn" type="button" id="cp">نسخ الرقم</button><button class="btn" type="button" id="ed">تعديل</button></div>`);
   layer.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>toast("أضف حساب "+b.dataset.miss+" من «تعديل»"));
-  layer.querySelectorAll("a.opt").forEach(a=>a.addEventListener("click",()=>{const k=a.dataset.k;if(k){logUse(c,k);setTimeout(()=>{close();render(true)},400)}}));
+  layer.querySelectorAll("a.opt").forEach(a=>a.addEventListener("click",e=>{const k=a.dataset.k;if(k==="wa"){e.preventDefault();openWA(a.getAttribute("href"))}if(k){logUse(c,k);setTimeout(()=>{close();render(true)},400)}}));
   $("#ed").onclick=()=>form(c);
   $("#cp").onclick=()=>{const n=c.phone||"";if(!n)return toast("لا يوجد رقم");(navigator.clipboard?navigator.clipboard.writeText(n):Promise.reject()).then(()=>toast("تم نسخ الرقم"),()=>toast(n))};
 }
@@ -448,7 +451,7 @@ function settings(){
    <div class="sec">الصفحات — اضغط على الصفحة لتعديل اسمها ولونها وخلفيتها</div>
    <div class="card">${S.pages.map((p,i)=>`<button class="prow" type="button" data-pe="${i}"><span class="thumb" style="${bgCss(p)}"></span><span class="grow">${esc(p.name)}<small>${S.contacts.filter(c=>c.page===p.id).length} أسماء</small></span><span class="chev">‹</span></button>`).join("")}</div>
    <div class="sec">المظهر</div>
-   <div class="card"><button class="prow" type="button" id="fontRow"><span class="sic" style="background:#7a45a8">ع</span><span class="grow">الخطوط<small>${(FONTS.find(x=>x[0]===((S.ui||{}).font||"cairo"))||FONTS[2])[1]}</small></span><span class="chev">‹</span></button>
+   <div class="card"><button class="prow" type="button" id="fontRow"><span class="sic" style="background:#7a45a8">ع</span><span class="grow">الخطوط<small>${(FONTS.find(x=>x[0]===((S.ui||{}).font||"loopo"))||FONTS[0])[1]}</small></span><span class="chev">‹</span></button>
     <button class="prow" type="button" id="sizeRow"><span class="sic" style="background:#c27a1f"><svg viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4zm-6 8h3v7h3v-7h3V9H3z"/></svg></span><span class="grow">حجم الخط<small>${(SIZES.find(x=>x[0]===(S.ui||{}).size)||SIZES[1])[1]}</small></span><span class="chev">‹</span></button>
     <button class="prow" type="button" id="rdRow"><span class="sic" style="background:#2f7d5b">${REDIAL}</span><span class="grow">خانة إعادة الاتصال<small>${(S.ui||{}).redial===false?"مخفية":"ظاهرة"} — اضغط للتبديل</small></span><span class="chev">${(S.ui||{}).redial===false?"○":"●"}</span></button>
     <button class="prow" type="button" id="shapeRow"><span class="sic" style="background:#5c6b7a">◐</span><span class="grow">شكل الأيقونة<small>${({circle:"دائري",round:"مربع مدور",square:"مربع"})[(S.ui||{}).shape||"circle"]} — اضغط للتغيير</small></span><span class="chev">‹</span></button>
@@ -496,7 +499,7 @@ function preview(){const p=S.pages[cur]||S.pages[0];const c=S.contacts[0]||{name
   return`<div class="prev" style="${bgCss(p)};background-size:cover">${avatar(c)}<div><div style="font:700 1.4rem var(--display)">${esc(p.name)}</div><div style="font:600 .85rem var(--body)">${esc(c.name)}</div></div></div>`}
 function fontSheet(){
   S.ui=S.ui||{};
-  const draw=()=>{layer.querySelector("#pvw").innerHTML=preview();layer.querySelectorAll(".fopt").forEach(b=>b.classList.toggle("sel",b.dataset.f===(S.ui.font||"cairo")))};
+  const draw=()=>{layer.querySelector("#pvw").innerHTML=preview();layer.querySelectorAll(".fopt").forEach(b=>b.classList.toggle("sel",b.dataset.f===(S.ui.font||"loopo")))};
   open(`<b style="font-family:var(--display);font-size:1.2rem">الخطوط</b><p class="note">اختر الخط اللي يعجبك، ويتغير فوراً.</p><div id="pvw" style="margin-top:12px"></div>
    <div class="fopts">${FONTS.map(f=>`<button type="button" class="fopt" data-f="${f[0]}"><b style="font-family:${f[2]},sans-serif">اتصال سريع</b><small>${f[1]}</small></button>`).join("")}</div>
    <div class="row"><button class="btn pri" type="button" id="cn">تم</button></div>`);
