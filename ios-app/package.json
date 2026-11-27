@@ -4,7 +4,7 @@
   "private": true,
   "description": "اتصال سريع — تطبيق آيفون (Capacitor)",
   "scripts": {
-    "build": "rm -rf www && mkdir -p www && cp ../index.html ../manifest.json ../icon.png www/",
+    "build": "rm -rf www && mkdir -p www && cp ../index.html ../i18n.js ../manifest.json ../icon.png www/",
     "assets": "capacitor-assets generate --ios --iconBackgroundColor '#0d1526' --splashBackgroundColor '#0d1526' --splashBackgroundColorDark '#0d1526'"
   },
   "dependencies": {

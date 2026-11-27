@@ -25,7 +25,8 @@
 body{margin:0}
 .page .pin{padding-top:calc(14px + env(safe-area-inset-top,0px))}
 html,body{height:100%}
-body{background:#0d1526;color:var(--ink);font-family:var(--body);direction:rtl;-webkit-tap-highlight-color:transparent;overflow:hidden}
+body{background:#0d1526;color:var(--ink);font-family:var(--body);direction:rtl;}
+html[dir=ltr] body{direction:ltr;-webkit-tap-highlight-color:transparent;overflow:hidden}
 button{font-family:var(--body)}
 .app{height:100%;display:flex;flex-direction:column}
 .pager{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;min-height:0}
@@ -123,12 +124,13 @@ input.ltr,textarea.ltr{direction:ltr;text-align:left;unicode-bidi:plaintext}
 .settings h2{font-family:var(--display);font-size:1.6rem;margin:0}
 .sec{font-size:.78rem;color:var(--muted);font-weight:600;letter-spacing:.02em;margin:22px 4px 8px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
-.prow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-inline:0;border-top:0;color:var(--ink);font:500 .95rem var(--body);text-align:right}
+.prow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-inline:0;border-top:0;color:var(--ink);font:500 .95rem var(--body);text-align:start}
 .prow:last-child{border-bottom:0}
 .thumb{width:44px;height:44px;border-radius:12px;background-size:cover;background-position:center;flex:0 0 auto;border:1px solid rgba(0,0,0,.08)}
 .prow .grow{flex:1;min-width:0}
 .prow small{display:block;color:var(--muted);font-size:.78rem;font-weight:400}
 .chev{color:var(--muted);font-size:1.2rem}
+html[dir=ltr] .chev{display:inline-block;transform:scaleX(-1)}
 .bgopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .bgopt{aspect-ratio:3/4;border-radius:12px;border:3px solid transparent;cursor:pointer;background-size:cover;background-position:center;color:#fff;font:500 .75rem var(--body);display:flex;align-items:flex-end;justify-content:center;padding:6px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
 .bgopt.sel{border-color:var(--ink)}
@@ -164,6 +166,7 @@ input.ltr,textarea.ltr{direction:ltr;text-align:left;unicode-bidi:plaintext}
 </div>
 <div id="layer"></div>
 
+<script src="i18n.js"></script>
 <script>
 const AV=["#c0574b","#4a7489","#c98a3a","#8a4fb8","#2f8f6b","#d26a9a","#3b5bdb","#5c6b7a"];
 const GR=["linear-gradient(135deg,#ff9a8b,#c0392b)","linear-gradient(135deg,#6dd5fa,#1f4e9b)","linear-gradient(135deg,#f6d365,#d9822b)","linear-gradient(135deg,#c471f5,#5b2a9b)","linear-gradient(135deg,#7ee8a6,#1d7a55)","linear-gradient(135deg,#ff9ac9,#b83f73)","linear-gradient(135deg,#a1c4fd,#3b5bdb)","linear-gradient(135deg,#434343,#0e0e0e)","linear-gradient(135deg,#fddb92,#b8860b)","linear-gradient(135deg,#43e97b,#38a3d1)"];
@@ -230,12 +233,14 @@ async function restorePro(){const st=proStore();if(!st)return;toast("جارٍ ا
   setTimeout(()=>{refreshPro();toast(PRO.on?"تم الاسترجاع ✓":"ما لقينا شراء على هذا الحساب")},1500)}
 function proSheet(why){
   if(isPro())return toast("عندك برو 👑");
+  const E=window.LANG==="en";
   open(`<div style="text-align:center"><div style="font-size:3rem">👑</div><b style="font-family:var(--display);font-size:1.35rem;display:block">اتصال سريع برو</b>
-   <p class="note" style="font-size:.95rem">${why?esc(why)+"<br>":""}ادفع <b>مرة وحدة بس</b>، ويبقى معك للأبد. بدون اشتراك شهري.</p></div>
-   <div class="card" style="padding:6px 14px;line-height:2.2">✅ أسماء <b>بلا حدود</b> (المجاني لين ${FREE_MAX} اسم)<br>✅ كل <b>الخطوط</b> العربية<br>✅ كل التحديثات الجاية مجاناً<br>❤️ تدعم تطبيق عُماني</div>
+   <p class="note" style="font-size:.95rem">${why?esc(why)+"<br>":""}${E?"Pay <b>once</b> and it’s yours forever. No monthly subscription.":"ادفع <b>مرة وحدة بس</b>، ويبقى معك للأبد. بدون اشتراك شهري."}</p></div>
+   <div class="card" style="padding:6px 14px;line-height:2.2">${E?`✅ <b>Unlimited</b> names (free: up to ${FREE_MAX})<br>✅ All Arabic <b>fonts</b><br>✅ All future updates included<br>❤️ Support an Omani app`
+     :`✅ أسماء <b>بلا حدود</b> (المجاني لين ${FREE_MAX} اسم)<br>✅ كل <b>الخطوط</b> العربية<br>✅ كل التحديثات الجاية مجاناً<br>❤️ تدعم تطبيق عُماني`}</div>
    <div class="row"><button class="btn pri" type="button" id="pBuy" ${PRO.busy?"disabled":""}>${PRO.busy?"جارٍ الشراء…":"اشترِ برو"+(PRO.price?" — "+PRO.price:"")}</button></div>
    <div class="row"><button class="btn" type="button" id="pRes">استرجاع المشتريات</button><button class="btn" type="button" id="cn">لاحقاً</button></div>
-   <p class="note" style="text-align:center;font-size:.75rem">شراء لمرة وحدة على حساب آبل حقك · <a href="https://techlights.app/speeddial/privacy.html" target="_blank">الخصوصية</a> · <a href="${EULA}" target="_blank">شروط الاستخدام</a></p>`);
+   <p class="note" style="text-align:center;font-size:.75rem">${E?"One-time purchase on your Apple account":"شراء لمرة وحدة على حساب آبل حقك"} · <a href="https://techlights.app/speeddial/privacy.html" target="_blank">${E?"Privacy":"الخصوصية"}</a> · <a href="${EULA}" target="_blank">${E?"Terms of Use":"شروط الاستخدام"}</a></p>`);
   $("#pBuy").onclick=buyPro;$("#pRes").onclick=restorePro;$("#cn").onclick=close}
 const realCount=()=>S.contacts.filter(c=>!c.ex).length;
 const canAdd=n=>isPro()||realCount()+(n||1)<=FREE_MAX;
@@ -302,7 +307,7 @@ function redialBox(){
   if(!items.length)return`<div class="rd"><div class="rdh"><span>${REDIAL} إعادة الاتصال</span></div><p class="rdempty">آخر من تواصلت معهم يظهرون هنا للاتصال بضغطة وحدة</p></div>`;
   return`<div class="rd"><div class="rdh"><span>${REDIAL} إعادة الاتصال</span><button type="button" class="rdclr" data-act="rdclr">مسح</button></div>
    <div class="rdl">${items.map(({r,c})=>{const s=SVC[r.k];return`<a class="rdi" href="${esc(linkFor(c,r.k))}" target="${r.k==="call"||r.k==="sms"?"_self":"_blank"}" rel="noopener" data-rid="${c.id}" data-rk="${r.k}">
-    <span class="rdav">${avatar(c)}<i style="background:${s.c}${r.k==="sc"?";color:#111":""}"><svg viewBox="0 0 24 24">${s.i}</svg></i></span><b>${nm(c)}</b><small>${ago(r.t)}</small></a>`}).join("")}</div></div>`;
+    <span class="rdav">${avatar(c)}<i style="background:${s.c}${r.k==="sc"?";color:#111":""}"><svg viewBox="0 0 24 24">${s.i}</svg></i></span><b data-raw>${nm(c)}</b><small>${ago(r.t)}</small></a>`}).join("")}</div></div>`;
 }
 const EYE='<svg viewBox="0 0 24 24"><path d="M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.3-3.1 11-7c-1.7-3.9-6-7-11-7zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>';
 const EYEOFF='<svg viewBox="0 0 24 24"><path d="M2.8 2.8 1.4 4.2l3.1 3.1A12 12 0 0 0 1 12c1.7 3.9 6 7 11 7 1.8 0 3.5-.4 5-1.1l2.8 2.8 1.4-1.4zM12 16.5A4.5 4.5 0 0 1 7.5 12c0-.8.2-1.5.5-2.1l1.6 1.6a2.5 2.5 0 0 0 2.9 2.9l1.6 1.6c-.6.3-1.3.5-2.1.5zM12 5c5 0 9.3 3.1 11 7a12.6 12.6 0 0 1-3.6 4.6l-3-3c.1-.5.1-1 .1-1.6A4.5 4.5 0 0 0 12 7.5c-.6 0-1.1 0-1.6.2L8 5.4C9.3 5.1 10.6 5 12 5z"/></svg>';
@@ -316,7 +321,7 @@ function render(keep){
       <div class="tools"><button class="gbtn" type="button" data-act="rename" aria-label="تغيير اسم الصفحة">${PEN}</button><button class="gbtn${edit?" on":""}" type="button" data-act="edit">${edit?"تم":"تعديل"}</button><button class="gbtn${hid()?" on":""}" type="button" data-act="hide" aria-label="إخفاء الأسماء">${hid()?EYEOFF:EYE}</button><button class="gbtn" type="button" data-act="set" aria-label="الإعدادات">${GEAR}</button></div></div>
      ${redialBox()}
      ${pi===0&&S.contacts.some(c=>!c.ex)&&(!S.lastBk||Date.now()-S.lastBk>7*864e5)?'<button type="button" class="rd" data-act="set" style="all:unset;display:block;cursor:pointer;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:10px 14px;margin-bottom:18px;font-size:.82rem;font-weight:600">☁️ احفظ نسخة من أسماءك في Google Drive — اضغط هنا</button>':""}
-     <div class="grid">${list.map(c=>`<button class="tile" type="button" data-c="${c.id}">${avatar(c)}<span class="nm">${nm(c)}</span></button>`).join("")}
+     <div class="grid">${list.map(c=>`<button class="tile" type="button" data-c="${c.id}">${avatar(c)}<span class="nm" data-raw>${nm(c)}</span></button>`).join("")}
       <button class="tile add" type="button" data-add="${p.id}"><div class="av">+</div><span class="nm">إضافة</span></button></div>
      ${list.some(c=>c.ex)?'<p class="empty">الأسماء الموجودة أمثلة — اضغط «تعديل» لتغييرها أو حذفها</p>':""}
      ${!list.length?'<p class="empty">الصفحة فارغة — اضغط + لإضافة أول اسم</p>':""}
@@ -366,7 +371,7 @@ function sheet(c){
   const opts=ORDER.map(k=>{const s=SVC[k];const val=valOf(c,k);
     const ic=`<span class="ic" style="background:${s.c}${k==="sc"?";color:#111":""}"><svg viewBox="0 0 24 24">${s.i}</svg></span>${s.n}`;
     return val?`<a class="opt" data-k="${k}" href="${esc(s.u(val))}" target="${k==="call"||k==="sms"?"_self":"_blank"}" rel="noopener">${ic}</a>`:`<button type="button" class="opt off" data-miss="${s.n}">${ic}</button>`}).join("");
-  open(`<div class="who">${avatar(c,1)}<div><b>${esc(c.name)}</b><span>${esc(c.phone||"بدون رقم")}</span></div></div>
+  open(`<div class="who">${avatar(c,1)}<div><b data-raw>${esc(c.name)}</b><span>${esc(c.phone||"بدون رقم")}</span></div></div>
    <div class="opts">${opts}</div>
    <div class="row"><button class="btn" type="button" id="cp">نسخ الرقم</button><button class="btn" type="button" id="ed">تعديل</button></div>`);
   layer.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>toast("أضف حساب "+b.dataset.miss+" من «تعديل»"));
@@ -469,7 +474,7 @@ function importSheet(list,opt){
   const row=(o,i)=>`<label class="prow" data-row="${i}" style="cursor:pointer"><input type="checkbox" data-i="${i}" ${full?"":"checked"} style="width:20px;height:20px;accent-color:var(--accent)">
      ${full?`<span class="av" style="width:38px;max-width:38px;font-size:.95rem;border:0;flex:0 0 auto;background:${AV[i%AV.length]}">${esc((o.name||"؟").trim()[0]||"؟")}</span>`
        :avatar({...o,color:i%AV.length},1).replace('class="av"','class="av" style="width:38px;max-width:38px;font-size:.95rem;border:0;flex:0 0 auto;'+(o.photo?"background-image:url(\'"+o.photo+"\')":"background:"+AV[i%AV.length])+'"')}
-     <span class="grow">${esc(o.name||"بدون اسم")}<small style="direction:ltr;text-align:right">${esc(o.phone||"بدون رقم")}</small></span></label>`;
+     <span class="grow"><span data-raw>${esc(o.name||"")}</span>${o.name?"":"بدون اسم"}<small style="direction:ltr;text-align:start">${esc(o.phone||"بدون رقم")}</small></span></label>`;
   open(`<b style="font-family:var(--display);font-size:1.15rem">${full?"جهات الاتصال":"اختر الأسماء"} (${list.length})</b>
    <label class="l" for="i_page">أضفهم إلى صفحة</label><select class="f" id="i_page">${S.pages.map(p=>`<option value="${p.id}"${p.id===pg?" selected":""}>${esc(p.name)}</option>`).join("")}</select>
    ${full?`<input class="f" id="i_q" type="search" placeholder="🔎 ابحث بالاسم أو الرقم" style="margin-top:10px">`:""}
@@ -531,6 +536,7 @@ function settings(){
    <div class="card">${["call","wa","sms"].map(k=>`<button class="prow" type="button" data-ga="${k}"><span class="sic" style="background:${SVC[k].c}"><svg viewBox="0 0 24 24">${SVC[k].i}</svg></span><span class="grow">${SVC[k].n}<small>${GLBL[gaMap()[k]||"none"]} — اضغط للتغيير</small></span><span class="chev">‹</span></button>`).join("")}</div>
    <p class="note">أي حركة لم تُخصَّص لقناة تفتح قائمة الخيارات الكاملة.</p>
    <div class="sec">جهات الاتصال</div>
+   <div class="card"><button class="prow" type="button" id="langRow"><span class="sic" style="background:#2b6fd6">🌐</span><span class="grow">اللغة · Language<small data-raw>${window.LANG==="en"?"English":"العربية"}</small></span><span class="chev">‹</span></button></div>
    ${NATIVE?`<div class="card"><button class="prow" type="button" id="proRow"><span class="sic" style="background:linear-gradient(145deg,#f4c95d,#d9a520)">👑</span><span class="grow">اتصال سريع برو<small>${isPro()?"مفعّل — شكراً لدعمك ❤️":"أسماء بلا حدود وكل الخطوط — مرة وحدة للأبد"}</small></span><span class="chev">‹</span></button></div>`:""}
    <div class="card"><button class="prow" type="button" id="impRow"><span class="sic" style="background:#2fa84f">${PERSON}</span><span class="grow">استيراد من جهات الاتصال<small>أضف أسماء من جوالك دفعة وحدة</small></span><span class="chev">‹</span></button></div>
    <div class="sec">النسخ الاحتياطي</div>
@@ -547,6 +553,7 @@ function settings(){
   el.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>pageForm(+b.dataset.pe));
   $("#fontRow").onclick=fontSheet;$("#sizeRow").onclick=sizeSheet;
   $("#hideRow").onclick=()=>{S.ui=S.ui||{};S.ui.hide=!S.ui.hide;save();settings();toast(S.ui.hide?"تم إخفاء الأسماء":"الأسماء ظاهرة")};
+  const lr=$("#langRow");if(lr)lr.onclick=()=>setLang(window.LANG==="en"?"ar":"en");
   const pr=$("#proRow");if(pr)pr.onclick=()=>proSheet();
   $("#impRow").onclick=()=>pickContacts(true,(list,o)=>importSheet(list,o));
   $("#shapeRow").onclick=()=>{S.ui=S.ui||{};const o=["circle","round","square"];S.ui.shape=o[(o.indexOf(S.ui.shape||"circle")+1)%3];save();applyUI();settings()};
