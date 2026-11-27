@@ -296,7 +296,7 @@ pager.onclick=e=>{
   const a=e.target.closest("[data-act]");if(a){if(a.dataset.act==="edit"){edit=!edit;render(true)}else if(a.dataset.act==="rename"){pageForm(+a.closest(".page").dataset.p,true)}else if(a.dataset.act==="hide"){S.ui=S.ui||{};S.ui.hide=!S.ui.hide;save();render(true);toast(S.ui.hide?"تم إخفاء الأسماء":"الأسماء ظاهرة")}else if(a.dataset.act==="rdclr"){if(a.dataset.sure){S.recent=[];save();render(true);toast("تم مسح القائمة")}else{a.dataset.sure=1;a.textContent="تأكيد المسح"}}else settings();return}
   const rd=e.target.closest(".rdi");if(rd){const c=S.contacts.find(x=>x.id===rd.dataset.rid);if(c){if(rd.dataset.rk==="wa"){e.preventDefault();openWA(rd.getAttribute("href"))}logUse(c,rd.dataset.rk);setTimeout(()=>render(true),400)}return}
   const t=e.target.closest(".tile");if(!t)return;
-  if(t.dataset.add)return form(null,t.dataset.add);
+  if(t.dataset.add)return addChoice(t.dataset.add);
   const c=S.contacts.find(x=>x.id===t.dataset.c);if(!c)return;
   if(edit)return form(c);
   if(longFired){longFired=false;return}
@@ -377,6 +377,15 @@ function parseVcf(text){
       else if(/^PHOTO/.test(key)&&!o.photo){if(/^https?:/.test(val))return;const t=(key.match(/TYPE=([A-Z]+)/)||[,"JPEG"])[1].toLowerCase();o.photo=val.startsWith("data:")?val:"data:image/"+t+";base64,"+val}});
     o.name=o.name||o.n||"";if(o.name||o.phone)out.push(o)});
   return out;
+}
+function addChoice(pid){
+  open(`<b style="font-family:var(--display);font-size:1.2rem;display:block;margin-bottom:12px">إضافة أسماء</b>
+   <button class="btn pri" type="button" id="ac1" style="width:100%;padding:16px;font-size:1.05rem">📇 من جهات الاتصال<br><small style="font-weight:500;opacity:.85">اختر اسم أو أكثر مرة وحدة</small></button>
+   <button class="btn" type="button" id="ac2" style="width:100%;margin-top:10px;padding:14px">✍️ إضافة يدوي</button>
+   <button class="btn" type="button" id="cn" style="width:100%;margin-top:10px">إلغاء</button>`);
+  $("#cn").onclick=close;
+  $("#ac2").onclick=()=>{close();form(null,pid)};
+  $("#ac1").onclick=()=>{close();pickContacts(true,list=>importSheet(list))};
 }
 function pickContacts(multi,cb){
   if("contacts" in navigator&&navigator.contacts.select){
