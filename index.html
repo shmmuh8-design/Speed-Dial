@@ -277,7 +277,8 @@ const hid=()=>!!(S.ui||{}).hide;
 const nm=c=>hid()?"••••":esc(c.name);
 function avatar(c,show){const m=hid()&&!show;
   if(c.photo&&!m)return`<div class="av" style="background-image:url('${c.photo}')"></div>`;
-  return`<div class="av" style="background:${c.grad!=null&&GR[c.grad]?GR[c.grad]:AV[c.color??0]}">${m?PERSON:esc((c.name||"؟").trim()[0])}</div>`}
+  return`<div class="av" style="background:${c.grad!=null&&GR[c.grad]?GR[c.grad]:AV[c.color??0]}">${m?PERSON:esc(ini(c.name))}</div>`}
+function ini(n){n=String(n||"؟").trim().replace(/^(ال|أبو |ابو |أم |ام )/,"");return(n||"؟")[0]}
 function shrink(file,size,cb,square){const img=new Image();img.onload=()=>{const cv=document.createElement("canvas");let sx=0,sy=0,sw=img.width,sh=img.height,w,h;
   if(square){const m=Math.min(sw,sh);sx=(sw-m)/2;sy=(sh-m)/2;sw=sh=m;w=h=size}else{const r=Math.min(1,size/Math.max(sw,sh));w=Math.round(sw*r);h=Math.round(sh*r)}
   cv.width=w;cv.height=h;cv.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,w,h);cb(cv.toDataURL("image/jpeg",.78))};img.src=URL.createObjectURL(file)}
