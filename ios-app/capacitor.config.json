@@ -1,0 +1,7 @@
+{
+  "appId": "com.salemaljabri.speeddial",
+  "appName": "اتصال سريع",
+  "webDir": "www",
+  "backgroundColor": "#0d1526",
+  "ios": { "contentInset": "never", "backgroundColor": "#0d1526" }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "speeddial-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "اتصال سريع — تطبيق آيفون (Capacitor)",
+  "scripts": {
+    "build": "rm -rf www && mkdir -p www && cp ../index.html ../manifest.json ../icon.png www/",
+    "assets": "capacitor-assets generate --ios --iconBackgroundColor '#0d1526' --splashBackgroundColor '#0d1526' --splashBackgroundColorDark '#0d1526'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor-community/contacts": "^7.0.0",
+    "cordova-plugin-purchase": "^13.10.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/assets": "^3.0.5"
+  }
+}

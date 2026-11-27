@@ -203,6 +203,43 @@ if(!S||!Array.isArray(S.pages)){
   S=defaults();
   try{const old=JSON.parse(localStorage.getItem("sd_list"));if(Array.isArray(old)&&old.length){S.contacts=old.map(c=>({...c,id:uid(),page:S.pages[0].id}))}}catch(e){}
 }
+/* ---------- تطبيق الآيفون (Capacitor) + برو مدى الحياة ---------- */
+const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const PL=n=>NATIVE&&Capacitor.Plugins&&Capacitor.Plugins[n];
+const PRO_ID="com.salemaljabri.speeddial.pro",FREE_MAX=20;
+const EULA="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+var PRO={on:!NATIVE,ready:false,price:"",busy:false};
+try{if(NATIVE)PRO.on=localStorage.getItem("sd.pro")==="1"}catch(e){}
+const isPro=()=>!!PRO.on;
+const proStore=()=>window.CdvPurchase&&CdvPurchase.store;
+function proSet(v){PRO.on=!!v;try{localStorage.setItem("sd.pro",v?"1":"0")}catch(e){}}
+function initPro(){if(!NATIVE)return;
+  const go=()=>{const st=proStore();if(!st)return;const {ProductType,Platform}=CdvPurchase;
+    st.register([{id:PRO_ID,type:ProductType.NON_CONSUMABLE,platform:Platform.APPLE_APPSTORE}]);
+    st.when().approved(t=>t.finish()).finished(()=>refreshPro()).productUpdated(()=>{readPrice();refreshPro()}).receiptUpdated(()=>refreshPro());
+    st.error(e=>{PRO.busy=false;if(e&&e.code!==6777006)toast("تعذّر الاتصال بالمتجر")});
+    st.initialize([Platform.APPLE_APPSTORE]).then(()=>{PRO.ready=true;readPrice();refreshPro()})};
+  if(window.CdvPurchase)go();else document.addEventListener("deviceready",go,{once:true})}
+function readPrice(){const st=proStore();const p=st&&st.get(PRO_ID);if(p&&p.pricing)PRO.price=p.pricing.price}
+function refreshPro(){const st=proStore();if(!st||!PRO.ready)return;const own=!!st.owned(PRO_ID);
+  if(own&&!PRO.on){proSet(true);PRO.busy=false;close();toast("مبروك! صار عندك اتصال سريع برو 👑");const el=$("#settings");if(el&&!el.hidden)settings()}}
+async function buyPro(){const st=proStore();const p=st&&st.get(PRO_ID);const o=p&&p.getOffer();
+  if(!o){toast("المتجر مو جاهز، جرّب بعد لحظات");return}
+  PRO.busy=true;proSheet();const err=await o.order();if(err){PRO.busy=false;proSheet();if(err.code!==CdvPurchase.ErrorCode.PAYMENT_CANCELLED)toast("ما تمت العملية")}}
+async function restorePro(){const st=proStore();if(!st)return;toast("جارٍ استرجاع المشتريات…");try{await st.restorePurchases()}catch(e){}
+  setTimeout(()=>{refreshPro();toast(PRO.on?"تم الاسترجاع ✓":"ما لقينا شراء على هذا الحساب")},1500)}
+function proSheet(why){
+  if(isPro())return toast("عندك برو 👑");
+  open(`<div style="text-align:center"><div style="font-size:3rem">👑</div><b style="font-family:var(--display);font-size:1.35rem;display:block">اتصال سريع برو</b>
+   <p class="note" style="font-size:.95rem">${why?esc(why)+"<br>":""}ادفع <b>مرة وحدة بس</b>، ويبقى معك للأبد. بدون اشتراك شهري.</p></div>
+   <div class="card" style="padding:6px 14px;line-height:2.2">✅ أسماء <b>بلا حدود</b> (المجاني لين ${FREE_MAX} اسم)<br>✅ كل <b>الخطوط</b> العربية<br>✅ كل التحديثات الجاية مجاناً<br>❤️ تدعم تطبيق عُماني</div>
+   <div class="row"><button class="btn pri" type="button" id="pBuy" ${PRO.busy?"disabled":""}>${PRO.busy?"جارٍ الشراء…":"اشترِ برو"+(PRO.price?" — "+PRO.price:"")}</button></div>
+   <div class="row"><button class="btn" type="button" id="pRes">استرجاع المشتريات</button><button class="btn" type="button" id="cn">لاحقاً</button></div>
+   <p class="note" style="text-align:center;font-size:.75rem">شراء لمرة وحدة على حساب آبل حقك · <a href="https://techlights.app/speeddial/privacy.html" target="_blank">الخصوصية</a> · <a href="${EULA}" target="_blank">شروط الاستخدام</a></p>`);
+  $("#pBuy").onclick=buyPro;$("#pRes").onclick=restorePro;$("#cn").onclick=close}
+const realCount=()=>S.contacts.filter(c=>!c.ex).length;
+const canAdd=n=>isPro()||realCount()+(n||1)<=FREE_MAX;
+
 const FONTS=[
  ["loopo","لوبو","'IBM Plex Sans Arabic'","'IBM Plex Sans Arabic'"],
  ["plex","بلكس","'Readex Pro','IBM Plex Sans Arabic'","'IBM Plex Sans Arabic'"],
@@ -360,7 +397,7 @@ function form(orig,pageId){
   $("#f_pick").onclick=()=>pickContacts(false,list=>{const x=list[0];if(!x)return;$("#f_name").value=x.name||"";$("#f_phone").value=x.phone||"";if(x.photo){c.photo=x.photo;redraw()}toast("تم جلب "+(x.name||"الجهة"))});
   $("#f").onsubmit=e=>{e.preventDefault();c.name=$("#f_name").value.trim();c.page=$("#f_page").value;
     FIELDS.forEach(([k])=>c[k]=k==="phone"?$("#f_"+k).value.trim():clean($("#f_"+k).value));delete c.ex;
-    const i=S.contacts.findIndex(x=>x.id===c.id);if(i<0)S.contacts.push(c);else S.contacts[i]=c;
+    const i=S.contacts.findIndex(x=>x.id===c.id);if(i<0&&!canAdd(1)){close();return proSheet("وصلت "+FREE_MAX+" اسم في النسخة المجانية.")}if(i<0)S.contacts.push(c);else S.contacts[i]=c;
     save();close();render(true);toast("تم الحفظ")};
 }
 
@@ -378,6 +415,9 @@ function parseVcf(text){
     o.name=o.name||o.n||"";if(o.name||o.phone)out.push(o)});
   return out;
 }
+const ctName=x=>(x.name&&(x.name.display||[x.name.given,x.name.family].filter(Boolean).join(" ")))||"";
+const ctPhone=x=>String((x.phones&&x.phones[0]&&x.phones[0].number)||"").replace(/[^\d+]/g,"");
+const ctImg=x=>x.image&&x.image.base64String?"data:image/jpeg;base64,"+x.image.base64String:"";
 function addChoice(pid){
   open(`<b style="font-family:var(--display);font-size:1.2rem;display:block;margin-bottom:12px">إضافة أسماء</b>
    <button class="btn pri" type="button" id="ac1" style="width:100%;padding:16px;font-size:1.05rem">📇 من جهات الاتصال<br><small style="font-weight:500;opacity:.85">اختر اسم أو أكثر مرة وحدة</small></button>
@@ -385,9 +425,19 @@ function addChoice(pid){
    <button class="btn" type="button" id="cn" style="width:100%;margin-top:10px">إلغاء</button>`);
   $("#cn").onclick=close;
   $("#ac2").onclick=()=>{close();form(null,pid)};
-  $("#ac1").onclick=()=>{close();pickContacts(true,list=>importSheet(list))};
+  $("#ac1").onclick=()=>{close();pickContacts(true,(list,o)=>importSheet(list,o))};
 }
 function pickContacts(multi,cb){
+  const C=PL("Contacts");
+  if(C){(async()=>{try{
+    if(!multi){const r=await C.pickContact({projection:{name:true,phones:true,image:true}});const x=r&&r.contact;if(!x)return;
+      const o={name:ctName(x),phone:ctPhone(x),photo:ctImg(x)};if(o.photo)o.photo=await new Promise(ok=>shrinkSrc(o.photo,160,ok));cb([o]);return}
+    let p=await C.checkPermissions();if(p.contacts!=="granted"&&p.contacts!=="limited")p=await C.requestPermissions();
+    if(p.contacts!=="granted"&&p.contacts!=="limited"){toast("اسمح لاتصال سريع بجهات الاتصال من إعدادات الآيفون");return}
+    const r=await C.getContacts({projection:{name:true,phones:true,image:true}});
+    const list=(r.contacts||[]).map(x=>({name:ctName(x),phone:ctPhone(x),photo:ctImg(x)})).filter(o=>o.phone).sort((a,b)=>a.name.localeCompare(b.name,"ar"));
+    if(!list.length)return toast("ما لقيت أسماء فيها أرقام");cb(list,{full:true});
+  }catch(e){toast("تعذّر فتح جهات الاتصال")}})();return}
   if("contacts" in navigator&&navigator.contacts.select){
     navigator.contacts.select(["name","tel","icon"],{multiple:multi}).then(async res=>{
       const list=[];for(const r of res){const o={name:(r.name||[])[0]||"",phone:String((r.tel||[])[0]||"").replace(/[^\d+]/g,"")};
@@ -413,20 +463,29 @@ function vcfHelp(go){
    <div class="row"><button class="btn pri" type="button" id="vgo">اختيار الملف</button><button class="btn" type="button" id="cn">إلغاء</button></div>`);
   $("#cn").onclick=close;$("#vgo").onclick=()=>{close();go()};
 }
-function importSheet(list){
-  const pg=(S.pages[cur]||S.pages[0]).id;
-  open(`<b style="font-family:var(--display);font-size:1.15rem">اختر الأسماء (${list.length})</b>
+function importSheet(list,opt){
+  const full=!!(opt&&opt.full);const pg=(S.pages[cur]||S.pages[0]).id;
+  const row=(o,i)=>`<label class="prow" data-row="${i}" style="cursor:pointer"><input type="checkbox" data-i="${i}" ${full?"":"checked"} style="width:20px;height:20px;accent-color:var(--accent)">
+     ${full?`<span class="av" style="width:38px;max-width:38px;font-size:.95rem;border:0;flex:0 0 auto;background:${AV[i%AV.length]}">${esc((o.name||"؟").trim()[0]||"؟")}</span>`
+       :avatar({...o,color:i%AV.length},1).replace('class="av"','class="av" style="width:38px;max-width:38px;font-size:.95rem;border:0;flex:0 0 auto;'+(o.photo?"background-image:url(\'"+o.photo+"\')":"background:"+AV[i%AV.length])+'"')}
+     <span class="grow">${esc(o.name||"بدون اسم")}<small style="direction:ltr;text-align:right">${esc(o.phone||"بدون رقم")}</small></span></label>`;
+  open(`<b style="font-family:var(--display);font-size:1.15rem">${full?"جهات الاتصال":"اختر الأسماء"} (${list.length})</b>
    <label class="l" for="i_page">أضفهم إلى صفحة</label><select class="f" id="i_page">${S.pages.map(p=>`<option value="${p.id}"${p.id===pg?" selected":""}>${esc(p.name)}</option>`).join("")}</select>
-   <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px"><span class="note" style="margin:0">المحدد يُضاف</span><button class="btn" type="button" id="i_all" style="padding:4px 12px">تحديد الكل</button></div>
-   <div class="card" style="max-height:44vh;overflow-y:auto">${list.map((o,i)=>`<label class="prow" style="cursor:pointer"><input type="checkbox" id="i_${i}" data-i="${i}" checked style="width:20px;height:20px;accent-color:var(--accent)">
-     ${avatar({...o,color:i%AV.length},1).replace('class="av"','class="av" style="width:38px;max-width:38px;font-size:.95rem;border:0;flex:0 0 auto;'+(o.photo?"background-image:url(\'"+o.photo+"\')":"background:"+AV[i%AV.length])+'"')}
-     <span class="grow">${esc(o.name||"بدون اسم")}<small style="direction:ltr;text-align:right">${esc(o.phone||"بدون رقم")}</small></span></label>`).join("")}</div>
+   ${full?`<input class="f" id="i_q" type="search" placeholder="🔎 ابحث بالاسم أو الرقم" style="margin-top:10px">`:""}
+   <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px"><span class="note" style="margin:0" id="i_n">${full?"اختر اللي تبيهم":"المحدد يُضاف"}</span>${full?"":`<button class="btn" type="button" id="i_all" style="padding:4px 12px">تحديد الكل</button>`}</div>
+   <div class="card" style="max-height:44vh;overflow-y:auto">${list.map(row).join("")}</div>
    <div class="row"><button class="btn pri" type="button" id="i_go">إضافة</button><button class="btn" type="button" id="cn">إلغاء</button></div>`);
   $("#cn").onclick=close;
-  $("#i_all").onclick=()=>{const bs=layer.querySelectorAll("[data-i]");const all=[...bs].every(b=>b.checked);bs.forEach(b=>b.checked=!all)};
-  $("#i_go").onclick=()=>{const page=$("#i_page").value;let n=0;
-    layer.querySelectorAll("[data-i]:checked").forEach(b=>{const o=list[+b.dataset.i];S.contacts.push({id:uid(),name:o.name||o.phone,phone:o.phone||"",photo:o.photo||"",color:n%AV.length,page});n++});
-    save();close();const el=$("#settings");if(el&&!el.hidden)settings();render(true);toast(n?"تمت إضافة "+n+" أسماء":"ما اخترت أي اسم")};
+  const cnt=()=>{const n=layer.querySelectorAll("[data-i]:checked").length;if(full)$("#i_n").textContent=n?"المحدد: "+n:"اختر اللي تبيهم"};
+  layer.querySelectorAll("[data-i]").forEach(b=>b.onchange=cnt);
+  const all=$("#i_all");if(all)all.onclick=()=>{const bs=layer.querySelectorAll("[data-i]");const a=[...bs].every(b=>b.checked);bs.forEach(b=>b.checked=!a)};
+  const q=$("#i_q");if(q)q.oninput=()=>{const v=q.value.trim().toLowerCase();layer.querySelectorAll("[data-row]").forEach(r=>{const o=list[+r.dataset.row];r.style.display=!v||(o.name||"").toLowerCase().includes(v)||(o.phone||"").includes(v)?"":"none"})};
+  $("#i_go").onclick=async()=>{const page=$("#i_page").value;const picked=[...layer.querySelectorAll("[data-i]:checked")].map(b=>list[+b.dataset.i]);
+    if(!picked.length)return toast("ما اخترت أي اسم");
+    if(!canAdd(picked.length)){close();return proSheet("النسخة المجانية لين "+FREE_MAX+" اسم، وعندك "+realCount()+".")}
+    let n=0;for(const o of picked){let ph=o.photo||"";if(full&&ph)ph=await new Promise(ok=>shrinkSrc(ph,160,ok));
+      S.contacts.push({id:uid(),name:o.name||o.phone,phone:o.phone||"",photo:ph,color:(S.contacts.length+n)%AV.length,page});n++}
+    save();close();const el=$("#settings");if(el&&!el.hidden)settings();render(true);toast("تمت إضافة "+n+" أسماء")};
 }
 
 /* ---------- dialer ---------- */
@@ -471,6 +530,7 @@ function settings(){
    <div class="card">${["call","wa","sms"].map(k=>`<button class="prow" type="button" data-ga="${k}"><span class="sic" style="background:${SVC[k].c}"><svg viewBox="0 0 24 24">${SVC[k].i}</svg></span><span class="grow">${SVC[k].n}<small>${GLBL[gaMap()[k]||"none"]} — اضغط للتغيير</small></span><span class="chev">‹</span></button>`).join("")}</div>
    <p class="note">أي حركة لم تُخصَّص لقناة تفتح قائمة الخيارات الكاملة.</p>
    <div class="sec">جهات الاتصال</div>
+   ${NATIVE?`<div class="card"><button class="prow" type="button" id="proRow"><span class="sic" style="background:linear-gradient(145deg,#f4c95d,#d9a520)">👑</span><span class="grow">اتصال سريع برو<small>${isPro()?"مفعّل — شكراً لدعمك ❤️":"أسماء بلا حدود وكل الخطوط — مرة وحدة للأبد"}</small></span><span class="chev">‹</span></button></div>`:""}
    <div class="card"><button class="prow" type="button" id="impRow"><span class="sic" style="background:#2fa84f">${PERSON}</span><span class="grow">استيراد من جهات الاتصال<small>أضف أسماء من جوالك دفعة وحدة</small></span><span class="chev">‹</span></button></div>
    <div class="sec">النسخ الاحتياطي</div>
    <div class="card"><button class="prow" type="button" id="bkFile"><span class="sic" style="background:#1fa463">⬆</span><span class="grow">حفظ نسخة في Google Drive أو الملفات<small>${S.lastBk?"آخر نسخة: "+ago(S.lastBk):"ما أخذت نسخة للحين"}</small></span><span class="chev">‹</span></button>
@@ -486,7 +546,8 @@ function settings(){
   el.querySelectorAll("[data-pe]").forEach(b=>b.onclick=()=>pageForm(+b.dataset.pe));
   $("#fontRow").onclick=fontSheet;$("#sizeRow").onclick=sizeSheet;
   $("#hideRow").onclick=()=>{S.ui=S.ui||{};S.ui.hide=!S.ui.hide;save();settings();toast(S.ui.hide?"تم إخفاء الأسماء":"الأسماء ظاهرة")};
-  $("#impRow").onclick=()=>pickContacts(true,list=>importSheet(list));
+  const pr=$("#proRow");if(pr)pr.onclick=()=>proSheet();
+  $("#impRow").onclick=()=>pickContacts(true,(list,o)=>importSheet(list,o));
   $("#shapeRow").onclick=()=>{S.ui=S.ui||{};const o=["circle","round","square"];S.ui.shape=o[(o.indexOf(S.ui.shape||"circle")+1)%3];save();applyUI();settings()};
   $("#d3Row").onclick=()=>{S.ui=S.ui||{};S.ui.d3=S.ui.d3===false;save();applyUI();settings();toast(S.ui.d3?"الأيقونات صارت 3D":"رجعت الأيقونات مسطحة")};
   $("#tcRow").onclick=()=>{S.ui=S.ui||{};S.ui.tc=S.ui.tc==="black"?"white":"black";save();applyUI();settings()};
@@ -513,7 +574,7 @@ function fontSheet(){
    <div class="fopts">${FONTS.map(f=>`<button type="button" class="fopt" data-f="${f[0]}"><b style="font-family:${f[2]},sans-serif">اتصال سريع</b><small>${f[1]}</small></button>`).join("")}</div>
    <div class="row"><button class="btn pri" type="button" id="cn">تم</button></div>`);
   draw();
-  layer.querySelectorAll(".fopt").forEach(b=>b.onclick=()=>{S.ui.font=b.dataset.f;applyUI();save();draw()});
+  layer.querySelectorAll(".fopt").forEach(b=>b.onclick=()=>{if(!isPro()&&b.dataset.f!=="loopo"){close();return proSheet("الخطوط الإضافية من مميزات برو.")}S.ui.font=b.dataset.f;applyUI();save();draw()});
   $("#cn").onclick=()=>{close();settings()};
 }
 function sizeSheet(){
@@ -556,6 +617,7 @@ function pageForm(i,fromPage){
 
 try{cur=Math.min(+localStorage.getItem("sd2_cur")||0,S.pages.length-1)}catch(e){}
 applyUI();render();requestAnimationFrame(()=>goTo(cur));
+initPro();
 </script>
 </body>
 </html>
