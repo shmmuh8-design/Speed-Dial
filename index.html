@@ -209,7 +209,7 @@ if(!S||!Array.isArray(S.pages)){
 /* ---------- تطبيق الآيفون (Capacitor) + برو مدى الحياة ---------- */
 const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
 const PL=n=>NATIVE&&Capacitor.Plugins&&Capacitor.Plugins[n];
-const PRO_ID="com.salemaljabri.speeddial.lifetime",FREE_MAX=20;
+const PRO_ID="com.salemaljabri.speeddial.Lifetime",FREE_MAX=20;
 const EULA="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 var PRO={on:!NATIVE,ready:false,price:"",busy:false};
 try{if(NATIVE)PRO.on=localStorage.getItem("sd.pro")==="1"}catch(e){}
